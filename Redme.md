@@ -43,18 +43,28 @@
 
 ## 🔧 Project Structure
 
-client/
-├── components/
-├── pages/
-├── redux/
-└── main.jsx
-
-server/
-├── controllers/
-├── models/
-├── routes/
-├── sockets/
-└── server.js
+Frontend/
+├── chatApp/
+│   └── src/
+│       ├── components/
+│       ├── store/
+│       ├── redux/
+│       ├── App.jsx/
+│       ├── index.js/
+│       └── main.jsx/
+│       └── serverConnection.jsx/
+├── Backend/   
+ └── controllers
+ └── Models
+ └── routes
+ └──utils
+ └── DataBase
+ └──Middlewares
+ └──public     
+├── README.md          
+├── package.json
+├── .gitignore
+└── node_modules/
 
 ---
 
