@@ -1,0 +1,45 @@
+.message_writing_area{
+    position: relative;
+    width:100%;
+}
+.input_Message_Here{
+    border:3px solid red;
+    height: 4rem;
+    width:100%;
+    
+display: flex;
+align-items: center;
+justify-content: center;
+
+border-radius: 15px;
+bottom: 0;
+/* position: fixed; */
+ /* left: 32%; */
+
+}
+#write_message_here{
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    
+
+padding: 10px;
+
+background-color:rgba(0, 0, 0, 0.868);
+
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+}
+#send_message_btn{
+    padding: 10px;
+    width: 10%;
+    height: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+   border-top-right-radius: 10px;
+   border-bottom-right-radius: 10px;
+ border: none;
+    background-color: rgba(0, 0, 0, 0.902);
+    
+
+    
+}
+/* styling each message "usrer1" and "user2" */

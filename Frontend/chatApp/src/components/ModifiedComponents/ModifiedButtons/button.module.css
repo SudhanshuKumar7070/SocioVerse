@@ -1,0 +1,26 @@
+.btnContainer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .btn {
+    padding: 10px 20px;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    border-radius: 10px;
+    border: solid 1px #1034aa;
+    border-bottom: solid 1px #90c2ff;
+    background: linear-gradient(135deg, #0034de, #006eff);
+    color: #fff;
+    font-weight: bolder;
+    transition: all 0.2s ease;
+    box-shadow: 0px 2px 3px #000d3848, inset 0px 4px 5px #0070f0,
+      inset 0px -4px 5px #002cbb;
+  }
+
+  .btn:active {
+    box-shadow: inset 0px 4px 5px #0070f0, inset 0px -4px 5px #002cbb;
+    transform: scale(0.995);
+  }

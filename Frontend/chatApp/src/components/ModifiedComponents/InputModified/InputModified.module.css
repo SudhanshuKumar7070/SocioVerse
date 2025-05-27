@@ -1,0 +1,44 @@
+.inputField {
+    position: relative;
+  }
+
+  .inputField label {
+    position: absolute;
+    color: #8d8d8d;
+    pointer-events: none;
+    background-color: transparent;
+    padding:5px;
+    left: 15px;
+    transform: translateY(0.6rem);
+    transition: all 0.3s ease;
+  }
+
+  .inputField input {
+    padding: 10px 15px;
+    
+    font-size: 1rem;
+    border-radius: 8px;
+    border: solid 1px #8d8d8d;
+    letter-spacing: 1px;
+    width: 100%;
+  }
+
+  .inputField input:focus,
+  .inputField input:valid {
+    outline: none;
+    border: solid 1px #0034de;
+  }
+
+  .inputField input:focus ~ label,
+  .inputField input:valid ~ label {
+    transform: translateY(-51%) translateX(-10px) scale(0.9);
+    background-color: #fff;
+    padding: 0px 5px;
+    color: #0034de;
+    
+    font-weight: bold;
+    
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 100px;
+  }

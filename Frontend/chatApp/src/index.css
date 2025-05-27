@@ -1,0 +1,38 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer utilities {
+  /* Custom scrollbar styles */
+  .scrollbar-custom {
+    scrollbar-width: thin; /* Thin scrollbar for Firefox */
+    scrollbar-color: transparent transparent; /* Invisible scrollbar by default */
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 0; /* No scrollbar width by default */
+    height: 0;
+  }
+
+  .scrollbar-custom:hover::-webkit-scrollbar,
+  .scrollbar-custom:focus-within::-webkit-scrollbar {
+    width: 8px; /* Show a thin scrollbar on hover/focus */
+    height: 8px;
+  }
+
+  .scrollbar-custom:hover::-webkit-scrollbar-thumb,
+  .scrollbar-custom:focus-within::-webkit-scrollbar-thumb {
+    background-color: theme('colors.customBlue'); /* Add a colored scrollbar thumb */
+    border-radius: 4px; /* Rounded edges for scrollbar */
+  }
+
+  .scrollbar-custom:hover::-webkit-scrollbar-track,
+  .scrollbar-custom:focus-within::-webkit-scrollbar-track {
+    background: theme('colors.lightGray'); /* Add a track background on focus/hover */
+  }
+}
+
+  

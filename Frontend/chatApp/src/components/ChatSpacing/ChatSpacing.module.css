@@ -1,0 +1,9 @@
+
+.container{
+    background: url('../../assets/dark_theme_img.webp');
+    background-position: center center ;
+    background-repeat: repeat-x;
+    background-size: cover;
+    background-clip: border-box;
+     
+}

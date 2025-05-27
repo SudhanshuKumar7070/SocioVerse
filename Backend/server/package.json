@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server/index.js",
+    "dev": "nodemon -r dotenv/config --experimental-json-modules index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "cloudinary": "^2.6.0",
+    "express": "^4.21.2",
+    "mongoose-aggregate-paginate-v2": "^1.1.4",
+    "redis": "^4.7.0"
+  }
+}
