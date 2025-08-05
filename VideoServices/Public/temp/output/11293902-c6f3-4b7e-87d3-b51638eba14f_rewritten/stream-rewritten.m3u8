@@ -1,0 +1,10 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:10
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXTINF:10.066667,
+https://firebasestorage.googleapis.com/v0/b/videostreamingbucket.firebasestorage.com/o/videos%2F11293902-c6f3-4b7e-87d3-b51638eba14f%2Fsegment000.ts?alt=media
+#EXTINF:4.133333,
+https://firebasestorage.googleapis.com/v0/b/videostreamingbucket.firebasestorage.com/o/videos%2F11293902-c6f3-4b7e-87d3-b51638eba14f%2Fsegment001.ts?alt=media
+#EXT-X-ENDLIST
