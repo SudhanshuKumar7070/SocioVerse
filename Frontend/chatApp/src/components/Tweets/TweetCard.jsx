@@ -15,7 +15,8 @@ function TweetCard({
   currentTweetId = "",
   retweets = 0,
   comments = 0,
-  commentLikes=0
+  commentLikes=0,
+  imageContent=""
 }) {
   const [isLiked, setIsLiked] = useState(false);
   const [isRetweeted, setIsRetweeted] = useState(false);
@@ -131,6 +132,7 @@ function TweetCard({
           </div>
 
           {/* Tweet Text */}
+          {imageContent && <div className="rounded-xl "><img className="rounded-md" src={imageContent} /></div> }
           <p className="text-slate-200 font-montserrat mb-3">{content}</p>
 
           {/* Tweet Actions */}

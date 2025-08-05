@@ -37,7 +37,7 @@ function Dashboard() {
     
 
   }
-  // useEffect for fetching data at first time
+  // useEffect for fetching all available tweets  
   useEffect(() => {
     const fetchTweet = async () => {
       const response = await axios.get(`${Url}/tweet/getAllTweets`, {
@@ -90,6 +90,7 @@ function Dashboard() {
                 key={index}
                 profilePicSrc={item.UserData[0].profilePicture}
                 content={item.TextContent}
+                imageContent={item.imageUrl}
                 username={item.UserData[0].fullName}
                  handle={item.UserData[0].userName}
                  likes={""}

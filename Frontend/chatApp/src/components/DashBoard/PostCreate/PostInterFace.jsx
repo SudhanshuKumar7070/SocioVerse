@@ -6,6 +6,8 @@ import { useSelector } from 'react-redux';
 
 
 function PostInterFace() {
+  // method for creating post here
+  
     const tweetText = useSelector((state)=>state.tweetTextContent?.textContent)
      console.log("textData::>",tweetText)
     const navigate = useNavigate();
@@ -13,20 +15,20 @@ function PostInterFace() {
     <>
     <div className='font-poppins my-3'>
        <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center gap-3 justify-center">
-  <Sparkles className="w-8 h-8 text-blue-400 animate-pulse" />
+  <Sparkles className="w-8 h-8 text-blue-400 animate-pulse font-poppins" />
   Create Post Here
 </h1>
     </div>
     <div className='sm:w-[70vw] w-[90vw] sm:h-[70vh] h-[90vh] shadow-md rounded-xl p-2 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex justify-center items-center '>
      <button 
-  className='group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-red-500/20 backdrop-blur-sm border border-white/20 hover:border-red-400/40 rounded-xl text-white hover:text-red-400 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/20' 
+  className='group flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-blue-500/20 backdrop-blur-sm  rounded-xl text-white hover:text-blue-400 transition-all duration-300 hover:scale-105 hover:shadow-sm font-poppins  hover:shadow-blue-500/50' 
   onClick={() => navigate(-1)}
 >
   <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-  <span className="text-sm font-medium">Back</span>
+  <span className="text-md font-medium font-poppins">Back</span>
 </button>
       <div className="w-full flex justify-center items-center">
-        <PostButton textPost={tweetText}/>
+        <PostButton textPost={tweetText} />
       </div>
     
     </div>
