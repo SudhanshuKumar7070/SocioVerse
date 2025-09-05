@@ -1,31 +1,29 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Input from "./Input";
 import Button from "./Button";
 import SpinnerWithText from "./LoadingSpinner";
 import { login } from "../store/authSlice";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
 function Register() {
   const Url = import.meta.env.VITE_API_URL;
   const dispatch = useDispatch();
   const [fullName, setFullName] = useState("");
   const [userName, setUserName] = useState("");
-   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState(""); 
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
-const storeData = useSelector((state) => state.auth.userData);
-console.log("storeData:",storeData)
-  // upload file to server
+
+  const storeData = useSelector((state) => state.auth.userData);
+
   const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]); // Access the selected file
-    console.log("Selected file:", e.target.files[0]);
+    setSelectedFile(e.target.files[0]);
   };
 
-  // handle reister
   const onRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -37,100 +35,134 @@ console.log("storeData:",storeData)
       formData.append("password", userPassword);
       formData.append("profilePicture", selectedFile);
 
-      const registeredData = await axios.post(
-        `${Url}/auth/register`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data", // Important for file uploads
-          },
-        }
-      );
+      const registeredData = await axios.post(`${Url}/auth/register`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       if (registeredData.data) {
         setLoading(false);
-        console.log("registeredData", registeredData.data);
-         dispatch(
-                  login({
-                    userData: registeredData.data.message,
-                    
-                  })
-                );
+        dispatch(
+          login({
+            userData: registeredData.data.message,
+          })
+        );
         setEmail("");
         setFullName("");
         setUserName("");
         setSelectedFile(null);
         setUserPassword("");
-       
+        
       }
     } catch (err) {
-      console.error("Error during registration:", registeredData.error);
+      console.error("Error during registration:", err);
+      setLoading(false);
     }
   };
 
-   useEffect(() => {
-      if (storeData) {
-        console.log("storeData after register:", storeData);
-        navigate("/add_Bio")
-       
-      }
-    }, [storeData, navigate]);
-  
+  useEffect(() => {
+    if (storeData) {
+      navigate("/login");
+    }
+  }, [storeData, navigate]);
 
   return (
-    <div
-      className=" flex  items-center p-4 flex-col border-2 border-slate-300 rounded-lg shadow-lg
-           h-[80vh] md:w-[40vw] w-screen mt-10 gap-3 bg-blue-200"
-    >
-      <form onSubmit={onRegister} className="p-4 w-full h-full flex flex-col gap-5">
-        <Input
-          name="fullName"
-          type="text"
-          label="FullName"
-          placeholder="Enter username here"
-          onChange={(e) => setFullName(e.target.value)}
-          value={fullName}
-        />
+    <div className="flex items-center justify-center mt-10">
+      <div className="flex flex-col items-center w-full md:w-[40vw] h-[80vh] p-6 rounded-2xl 
+        shadow-2xl border border-slate-200 
+        bg-white/90 backdrop-blur-md">
+        
+        {/* Title */}
+        <h2 className="text-2xl font-bold mb-4 font-poppins text-gray-800 drop-shadow-sm">
+          Create an Account
+        </h2>
 
-        <Input
-          name="userName"
-          type="text"
-          label="UserName"
-          placeholder="Enter username here"
-          onChange={(e) => setUserName(e.target.value)}
-          value={userName}
-        />
-        <Input
-          name="email"
-          type="email"
-          label="Email"
-          placeholder="Enter email here"
-          onChange={(e) => setEmail(e.target.value)}
-          value={email}
-        />
-        <Input
-          name="password"
-          type="password"
-          label="Password"
-          placeholder="Enter password here"
-          onChange={(e) => setUserPassword(e.target.value)}
-          value={userPassword}
-        />
-        <Input
-          name="profilePicture"
-          type="file"
-          label="Profile"
-          placeholder="Your Profile"
-          onChange={handleFileChange}
-          // value={selectedFile}
-        />
-        {selectedFile && <p>File Name: {selectedFile.name}</p>}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {" "}
-          {loading ? <SpinnerWithText data={"signing up..."} /> : " Sign Up"}
-        </Button>
-           <h3> already have an account ?    <Link to="/login" className="font-bold">sign in</Link>  </h3> 
-      </form>
+        {/* Form */}
+        <form
+          onSubmit={onRegister}
+          className="w-full h-full flex flex-col gap-5"
+        >
+          <Input
+            name="fullName"
+            type="text"
+            className="border bg-white border-gray-300 rounded-lg px-3 py-2 shadow-sm 
+              focus:ring-2 focus:ring-blue-500 transition"
+            label="Full Name"
+            placeholder="Enter your full name"
+            onChange={(e) => setFullName(e.target.value)}
+            value={fullName}
+          />
+
+          <Input
+            name="userName"
+            type="text"
+            className="border bg-white border-gray-300 rounded-lg px-3 py-2 shadow-sm 
+              focus:ring-2 focus:ring-blue-500 transition"
+            label="Username"
+            placeholder="Enter username"
+            onChange={(e) => setUserName(e.target.value)}
+            value={userName}
+          />
+
+          <Input
+            name="email"
+            type="email"
+            className="border bg-white border-gray-300 rounded-lg px-3 py-2 shadow-sm 
+              focus:ring-2 focus:ring-blue-500 transition"
+            label="Email"
+            placeholder="Enter your email"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+          />
+
+          <Input
+            name="password"
+            type="password"
+            className="border bg-white border-gray-300 rounded-lg px-3 py-2 shadow-sm 
+              focus:ring-2 focus:ring-blue-500 transition"
+            label="Password"
+            placeholder="Enter password"
+            onChange={(e) => setUserPassword(e.target.value)}
+            value={userPassword}
+          />
+
+          <Input
+            name="profilePicture"
+            type="file"
+            className="border bg-white border-gray-300 rounded-lg px-3 py-2 shadow-sm 
+              cursor-pointer focus:ring-2 focus:ring-blue-500 transition"
+            label="Profile Picture"
+            onChange={handleFileChange}
+          />
+
+          {selectedFile && (
+            <p className="text-sm text-gray-700">
+              Selected File: <span className="font-medium">{selectedFile.name}</span>
+            </p>
+          )}
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 
+              text-white font-semibold rounded-lg shadow-md transition 
+              disabled:opacity-50"
+            disabled={loading}
+          >
+            {loading ? <SpinnerWithText data={"Signing up..."} /> : "Sign Up"}
+          </Button>
+
+          {/* Footer */}
+          <h3 className="text-gray-700 text-sm font-poppins text-center">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="text-blue-600 font-semibold font-poppins hover:underline"
+            >
+              Sign in
+            </Link>
+          </h3>
+        </form>
+      </div>
     </div>
   );
 }

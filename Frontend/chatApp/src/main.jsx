@@ -4,9 +4,10 @@ import { Provider } from "react-redux";
 import RouteAuhtentication from "./components/RouteAuhtentication.jsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { store, persistor } from "./store/store.js";
+import ValidateCode from "./components/ForgotPassword/ValidateCode.jsx";
 // import  from "./store/store.js";
 import { PersistGate } from "redux-persist/integration/react";
-import LandingPage from "./components/LandingPage/LandingPage.jsx";
+import LandingPage from "./components/LandingPage/landingPage.jsx";
 import App from "./App.jsx";
 import Register from "./components/Register.jsx";
 import Login from "./components/Login.jsx";
@@ -31,6 +32,7 @@ import AppUser from "./components/Users/AppUser.jsx";
 import { MapProvider } from "./store/NotificationMap.jsx";
 // import AdminUser from "./components/Users/UserProfile.jsx";
 import UserProfile from "./components/Users/UserProfile.jsx";
+import SendEmail from "./components/ForgotPassword/SendEmail.jsx";
 import MessageInterface from "./components/messageComponents/MessageInterface.jsx";
 import PostInterFace from "./components/DashBoard/PostCreate/PostInterFace.jsx";
 const router = createBrowserRouter([
@@ -39,12 +41,11 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: "/home", // Nested route under "/"
-        element: <LandingPage />,
+        path: "/", // Nested route under "/"
+        element: <LandingPage/>,
       },
       {
         path: "/register", // Route for "/register"
-
         element: <Register />,
       },
       {
@@ -53,19 +54,27 @@ const router = createBrowserRouter([
       },
       {
         path: "/login", // Route for "/login"
-        element: <Login />,
+        element: <Login/>,
+      },
+      {
+        path: "/sendEmail", // Route for "/login"
+        element: <SendEmail/>,
+      },
+      {
+        path: "/validatePassCode/:email", // Route for "/login"
+        element: <ValidateCode/>,
       },
       {
         path: "/user_contacts",
-        element: <ContactList />,
+        element: <ContactList/>,
       },
       {
         path: "/mainTextingArea",
-        element: <MainTextingArea />,
+        element: <MainTextingArea/>,
       },
       {
-        path: "/componentCheck",
-        element: <Dashboard />,
+        path: "/dashboard",
+        element: <Dashboard/>,
       },
       {
         path: "/center_area",
@@ -80,7 +89,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/add_Bio",
-        element: <Form />,
+        element: <Form/>,
       },
       {
         path: "/reels",

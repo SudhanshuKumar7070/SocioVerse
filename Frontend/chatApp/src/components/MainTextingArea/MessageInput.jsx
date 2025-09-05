@@ -19,10 +19,14 @@ const MessageInput = ({PropClassName}) => {
 //  const[receiverId,setReceiverId]=useState();
  const socket = useSocket();
    const handleSendMessage=()=>{
+    console.log("<>----------handleSendMessage called--------<>")
+    if(!textMessage){
+      return
+    }
  socket.emit("sendMessage",{conversationID:conversationID,senderId:senderId,receiverId: receiverId ,textMessage:textMessage})
  console.log("sendMessage",conversationID,senderId,receiverId,textMessage)
  setMessage('')
-  
+
 }
    
   

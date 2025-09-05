@@ -55,7 +55,7 @@ function AppContact() {
       setSuccessData(data);
       if (data) {
         console.log("Contact saved successfully:", data);
-        navigate("/center_area");
+        navigate("/dashboard");
       }
     } catch (err) {
       setLoading(false);
@@ -73,16 +73,18 @@ function AppContact() {
 
   return (
     <>
-      <ul className="bg-slate-800/70 text-slate-200 rounded-xl w-[70%] px-3 py-2 inline-block h-[70vh] overflow-y-scroll my-2 scrollbar-custom">
+      <ul className="bg-slate-900/30 text-slate-200 rounded-xl w-[70%] px-4 py-6  inline-block h-[70vh] overflow-y-scroll my-4 scrollbar-custom shadow-lg relative">
+           <h1 className="text-2xl tracking-tight leading-tight font-semibold font-montserrat  my-4  text-white  py-4 px-2  w-full sticky top-0 left-0 right-0 text-center shadow-md bg-white/10 backdrop-blur-sm rounded-md">Select Friends to Get Started</h1>
+       
         {data.length > 0 ? (
           data.map((el) => (
             <li
               key={el._id}
               onClick={() => handleSelect(el._id)}
-              className={`border-2 p-3 rounded-xl gap-2 my-2 cursor-pointer transition-all ${
+              className={`  p-3 rounded-md gap-2 my-2 cursor-pointer transition-all duration-150 ${
                 selectedId.includes(el._id)
-                  ? "bg-sky-900 border-sky-500"
-                  : "bg-slate-800 border-slate-600"
+                  ? "bg-sky-900 shadow-lg"
+                  : "bg-slate-800 shadow-md hover:bg-slate-700 hover:shadow-lg "
               }`}
             >
               <div className="flex items-center gap-3">
@@ -91,9 +93,9 @@ function AppContact() {
                   alt="img"
                   className="h-8 w-8 rounded-full border border-slate-400"
                 />
-                <p className="text-sky-300 font-bold text-lg">{el.fullName}</p>
+                <p className="text-sky-300 font-medium text-xl font-poppins">{el.fullName}</p>
               </div>
-              <p className="text-slate-400 font-mono pl-11">{el.userName}</p>
+              <p className="text-slate-400 font-montserrat pl-11">{el.userName}</p>
             </li>
           ))
         ) : (

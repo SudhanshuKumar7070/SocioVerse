@@ -9,19 +9,21 @@ import { useGlobalSocket } from "../SocketConnection";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import SpinnerWithText from "../LoadingSpinner";
-// import redis from 'redis'
-// import {
-//   setCurrentRoom,
-//   updateConversationState,
-// } from "../../store/conversationSlice";
+// import { use } from "react";
+// // import redis from 'redis'
+// // import {
+// //   setCurrentRoom,
+// //   updateConversationState,
+// // } from "../../store/conversationSlice";
  
 
 function MessageInterface({ propClass , convoId}) {
+
   // const subscriber= redis.createClient();
    const [isLoading,setIsLoading] = useState(true)
   const dispatch = useDispatch();
   const url = import.meta.env.VITE_API_URL;
-  const [convId, setConvId] = useState("");
+   const [convId, setConvId] = useState("");
   const [textMessage, setMessage] = useState([]);
   const myId = useSelector((state) => state.conversation.senderId);
   const socket = useSocket();
@@ -31,26 +33,15 @@ function MessageInterface({ propClass , convoId}) {
   
   // setConvId(convoId);
   console.log("myData:", myData, "and my id is:", myId);
-  //  const chatMessages = [
-  //     { text: "message 1", sender: "me" },
-  //     { text: "message received 1", sender: "other" },
-  //     { text: "test Message 2", sender: "me" },
-  //     {text:"check this", sender:"me"},
-  //     { text: "test received Message 2", sender: "other" },
-  //     { text: "message Tested successfully", sender: "me" },
-  //     { text: "message received Tested successfully", sender: "other" },
-  //   ];
-  // const conversationId = useSelector((state)=>state.conversation.conversationId);
-  // const senderId = useSelector((state) => state.conversation.senderId);
+
   const fetchOldChats = useCallback(     async (conversationId) => {
-     
 
       try {
         const response = await axios.get(
           `${url}/conversation/fetchConversation/${conversationId}`,{withCredentials:true}
         );
         if(!response) {
-          
+         
           return
         }
         console.log("response:", response);
@@ -67,49 +58,10 @@ function MessageInterface({ propClass , convoId}) {
       }
     },[convoId])
 
+useEffect(() => {
+    setConvId(convoId);
+  }, [convoId]);
     
-  
-
-  //  useEffect(()=>{
-  //    socket.on("conversationStarted",async(data)=>{
-  //    const {conversationId,room} = data;
-  //    if ([conversationId,room].some((fields)=> fields.trim()==="")) return (<p className='text-red-500'>conversationId and room id is not available at the moment</p>)
-  //      try{
-  //       // fetches all previous chats
-  //       // const response = await axios.get(`${url}/conversation/fetchConversation/${conversationId}`)
-  //       //  if(response){
-  //       //    dispatch(updateConversationState({
-  //       //      conversationId:conversationId
-  //       //    }))
-  //       //  }
-  //       // // console.log("conversationID::",conversationId)
-  //       // // console.log("roomId",room)
-  //       // // console.log( "response::",response)
-  //       // // console.log( "response ka data :>",response.data)
-  //       // // console.log( "response ka data ka response :>",response.data.response)
-  //       // setMessage(response.data.response[0].conversationMessages)
-
-  //      await fetchOldChats(conversationId);
-  //       socket.on("newMessage",(data)=>{
-  //         console.log("new message data", data)
-
-  //       setMessage(prev=>[...prev,data])
-
-  //       })
-
-  //      }
-  //      catch(error){
-  //       console.log("error occured in rendering messages ->",error.messages)
-  //      }
-  //    })
-  //  },[socket])
-  // //  fetch the newly created message
-  //     useEffect(()=>{
-  //     socket.on("newMessage",(data)=>{
-  //       console.log("data of new Message::>",data)
-  //      setMessage(prevMessages =>[...prevMessages,data])
-  //     })
-  //     },[])
 
      useEffect(() => {
     
@@ -129,73 +81,27 @@ function MessageInterface({ propClass , convoId}) {
   
     }
     start(convoId);
-    // console.log("conversationId:",conversationId)
-    //  if (!conversationId) return;
-    //   fetchOldChats(conversationId);
-  //  subscriber.on("connect",()=>{
-  //    console.log('subscriber connected')
-  //  })
-    // const handleConversatonStart = async (data) => {
-    //   const { conversationId, room } = data;
-    //   console.log("conversationId:", conversationId);
-    //   if (!conversationId || !room) {
-    //     console.error("Invalid conversation details");
-    //     return;
-    //   }
-    //   // socket.join(room)==> can be done at the server side
-    //   dispatch(setCurrentRoom({ currentRoom: room }));
-    //   console.log("room joined , ab sara convo yahi se hoga:", room);
-    //   socket.emit("checking", {
-    //     message: "checking if the message is sent or not",
-    //   });
-    //   setConvId(conversationId);
-    //   console.log("conversationId:", conversationId);
-    //   await fetchOldChats(conversationId);
-    //   dispatch(
-    //     updateConversationState({
-    //       conversationId: conversationId,
-    //     })
-    //   );
-    // };
-  
-
-    // socket.on("conversationStarted", handleConversatonStart);
-   
-    // socket.on("newChatNotfication",handleNewChatNotification);
-    //  handling new message
+    
     const handleNewMessage = (newData) => {
-      console.log("New message received:", newData);
+      console.log("New message received:", newData, "and convoId is:", convoId);
        
-      if (newData.conversationID === convId) {
-        // setMessage(prevMessages => {
-        //   // Avoid duplicates
-        //   const isDuplicate = prevMessages.some(
-        //     msg => msg._id === newData.messageId
-        //   );
-
-        //   return isDuplicate
-        //     ? prevMessages
-        //     : [...prevMessages, {
-        //         _id: newData.messageId,
-        //         text: newData.text,
-        //         sender: newData.senderId === senderId ? 'me' : 'other'
-        //       }];
-        // });
+      if (newData.conversationID === convoId) {
+       
         const newMessage = {
           text: newData.text,
           sender: newData.senderId,
         };
         setMessage((prev) => [...prev,newMessage]);
       }
-      console.log("textMessage:", textMessage);
+      // console.log("textMessage:", textMessage);
     };
 
-    socket.on("newMessage", handleNewMessage);
-    return () => {
+    socket.on("newMessage", handleNewMessage)
+          return () => {
       // socket.off("conversationStarted", handleConversatonStart);
-      socket.off("newMessage", handleNewMessage);
+     socket.off("newMessage", handleNewMessage);
     };
-  }, [convoId,socket]);
+  }, [socket,convoId]);
   // handling global notification to stop rerendering
 
   useEffect(()=>{
@@ -207,7 +113,7 @@ function MessageInterface({ propClass , convoId}) {
     return ()=>{
       globalSocket.off("newChatNotfication",handleNewChatNotification)
     }
-  },[globalSocket])
+  },[globalSocket,convoId])
 
   useEffect(() => {
     if (refrer.current) {

@@ -4,6 +4,7 @@ function InputModified({
     type = "text",
     id="",
     label="",
+    className="",
     placeholder="",
     ...props
 }) {
@@ -17,8 +18,9 @@ function InputModified({
             required
             autoComplete="off"
             {...props}
+            className={` placeholder:text-neutral-500 placeholder:font-poppins font-montserrat tracking-tight leading-tight  shadow-md ${className}`}
       />
-      {label && <label htmlFor={id} >{label}</label>}
+      {label && <label htmlFor={id} className='font-poppins text-neutral-500 tracking-tight text-sm ' >{label}</label>}
     </div>
   )
 }

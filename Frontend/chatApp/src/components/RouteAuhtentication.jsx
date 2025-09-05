@@ -20,7 +20,7 @@ function RouteAuhtentication({reqAuthentication= true , children}) {
         checkRouteAuthentication();
       
     },[isUserAuthenticated,navigate,reqAuthentication])
-
+    // use effect to check if the user
     if (loading) {
         return (
             <>

@@ -3,15 +3,15 @@ import redis from 'redis'
   // server must be a publisher of notifications
   const publisher = redis.createClient({
     socket: {
-      host: '127.0.0.1', // or your Redis host
-      port: 3000,        // or your Redis port
+      host: 'localhost', 
+      port:6379,
     },
   });
   
   const subscriber = redis.createClient({
     socket: {
-      host: '127.0.0.1',
-      port: 3000,
+      host: 'localhost',
+      port: 6379,
     },
   });
   
