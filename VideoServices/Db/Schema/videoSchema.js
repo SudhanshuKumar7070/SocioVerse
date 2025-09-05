@@ -43,6 +43,12 @@ const videoSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    dislikes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     comments: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

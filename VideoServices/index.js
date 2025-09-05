@@ -3,13 +3,14 @@ import { createBucket,uploadContent } from './supabase.setup.js';
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import { newFireApp } from "./firebaseDb.setup.js";
+// import { newFireApp } from "./firebaseDb.setup.js";
 import { videoTranscoder, queueEvents } from "./queue.setup.js";
      
-import { push, Database, getDatabase, ref,get } from "firebase/database";
+// import { push, Database, getDatabase, ref,get } from "firebase/database";
 dotenv.config();
-import videoRoute from "./Router/videoUpload.route.js";
-import fetchVideoRoute from "./Router/videoFetch.route.js";
+import videoRoute from "./Routes/videoUpload.route.js";
+import fetchVideoRoute from "./Routes/videoFetch.route.js";
+import {router }from "./Routes/videoLike.routes.js"
 import { fileURLToPath } from "url";
 import { connectDb } from "./Db/connect.db.js";
 
@@ -38,6 +39,7 @@ app.use("/Public", express.static("Public"));
 // API routes
 app.use("/api/v1", videoRoute);
 app.use("/api/v1", fetchVideoRoute);
+app.use("/api/v1",router);
 const fileData={
   name:'sk',
   message:'connection success',

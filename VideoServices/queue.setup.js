@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs'; // Added readFileSync
 import { supabase, uploadContent } from './supabase.setup.js';
 import path from 'path';
-import { bucket } from './firebaseDb.setup.js';
+// import { bucket } from './firebaseDb.setup.js';
 import { Queue, Worker, QueueEvents } from 'bullmq';
 import IORedis from 'ioredis';
 import { ReelVideo } from './Db/Schema/videoSchema.js';
