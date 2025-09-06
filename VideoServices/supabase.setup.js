@@ -2,8 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 
 
 // const supabaseApi_key = "https://ozkbzspjxysljtsuyrqq.supabase.co/storage/v1/s3";
-const supabaseApi_key = "https://ozkbzspjxysljtsuyrqq.supabase.co";
-const supabase_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96a2J6c3BqeHlzbGp0c3V5cnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDMwNjMsImV4cCI6MjA2OTIxOTA2M30.AuhqtkWXkiGMlSNG-05y3xw2_mOM_XnfcD0BZcf2NJA"
+const supabaseApi_key = process.env.SUPABASE_API_KEY;
+const supabase_anon_key =process.env.SUPABASE_ANON_KEY;
 export const supabase= createClient(
 supabaseApi_key,supabase_anon_key
 )

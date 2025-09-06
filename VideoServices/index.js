@@ -59,41 +59,6 @@ app.get("/hi", (req, res) => {
   return res.json({ data: "app is running successfully" });
 });
 
-// pushing some data to firebase database
-// const addData = () => {
-//   const db = getDatabase();
-//   const userRef = ref(db, "checkData");
-//   const response = push(userRef, {
-//     name: "Sudhanshu",
-//     age: 25,
-//   });
-//   if (response) console.log("data pushed", response);
-// };
-// fetching that data 
-// const fetchFireData = async()=>{
-//   const db = getDatabase();
-//   const userRef =ref(db,"checkData")
-//   try{
-//      const response= await get(userRef);
-//      if(response) {console.log('response of that db:',response.val()) 
-//       return response
-//     }
-//      return "no data found"
-//   }
-//   catch(err){
-//     console.log('error is :',err);
-    
-//   }
-// }
-// app.get("/test", (req, res) => {
-//   addData();
-//   res.json({ message: "data pushed successfully" });
-// });
-// app.get("/fetchTest", (req, res) => {
-//  const someData = fetchFireData();
-//   res.json({ message: "data fetched successfully" ,data:someData});
-// });
-
 connectDb().then(() => {
   app.listen(3002, () => {
     console.log("✅ App is listening at port: 3002");
