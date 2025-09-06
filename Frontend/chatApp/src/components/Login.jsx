@@ -53,7 +53,7 @@ function Login() {
 
   return (
     <div className="flex items-center justify-center mt-10">
-      <div className="flex flex-col items-center w-full md:w-[40vw] h-[40vh] p-6 rounded-2xl 
+      <div className="flex flex-col items-center w-full md:w-[40vw] h-[45vh] p-6 rounded-2xl 
         shadow-2xl border border-slate-200 
         bg-white/90 backdrop-blur-md">
         
@@ -89,8 +89,8 @@ function Login() {
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 
-              text-white font-semibold rounded-lg shadow-md transition 
+            className="w-full py-2   
+              text-neutral-600 font-semibold rounded-lg shadow-md transition 
               disabled:opacity-50"
             disabled={loading}
           >

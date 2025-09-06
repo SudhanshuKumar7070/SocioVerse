@@ -12,7 +12,7 @@ import { useContext } from 'react';
 import { contextMap } from './store/NotificationMap.jsx';
 import landingPage from './components/LandingPage/landingPage.jsx';
 import LandingPage from './components/LandingPage/landingPage.jsx';
-import ForgotPass from './components/ForgotPass.jsx';
+// import ForgotPass from './components/ForgotPass.jsx';
 // import ChatingSpace from './components/ChatSpacing/ChatingSpace.jsx';
 function App() {
   const {t , i18n} = useTranslation();
@@ -95,7 +95,7 @@ function App() {
     <div className="h-full w-full flex justify-center items-center flex-col">
       
    <Container>
- <ForgotPass/>
+ {/* <ForgotPass/> */}
     {/* <div className='bg-red-500/10 text-white font-bold font-poppins flex flex-col gap-2 justify-center items-center absolute top-50 '>
        <h1>{t("welcome")}</h1>
       <button className='hover:transition-all duration-150 ease-linear hover:text-white/50' onClick={() => changeLanguage("en")}>English</button>

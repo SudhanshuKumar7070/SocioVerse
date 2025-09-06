@@ -35,6 +35,7 @@ import UserProfile from "./components/Users/UserProfile.jsx";
 import SendEmail from "./components/ForgotPassword/SendEmail.jsx";
 import MessageInterface from "./components/messageComponents/MessageInterface.jsx";
 import PostInterFace from "./components/DashBoard/PostCreate/PostInterFace.jsx";
+import ResetPassword from "./components/ForgotPassword/ResetPassword.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -61,8 +62,12 @@ const router = createBrowserRouter([
         element: <SendEmail/>,
       },
       {
-        path: "/validatePassCode/:email", // Route for "/login"
+        path: "/validatePassCode/:email", // Route for "checking pacccode" 
         element: <ValidateCode/>,
+      },
+      {
+        path: "/resetPassword/:email/:code", // Route for "reset password"
+        element: <ResetPassword/>,
       },
       {
         path: "/user_contacts",
