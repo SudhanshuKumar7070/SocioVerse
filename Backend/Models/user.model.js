@@ -47,6 +47,7 @@ const userSchema = new mongoose.Schema(
     lastUpdated: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     RefreshToken: { type: String },
+    forgotPasswordCode:{type:Number},
     status: { type: String }, // Example: "Hey, I’m using this chat app!"
     contacts: [
       {

@@ -62,7 +62,7 @@ function SendEmail() {
           <Button
           disabled={loading}
             type="submit"
-            className="w-full font-montserrat font-bold  py-2 px-4  text-neutral-600 font-bold rounded-xl hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+            className="w-full font-montserrat   py-2 px-4  text-neutral-600 font-bold rounded-xl hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
           >
            {loading?"sending otp please wait...":"Send Otp"}
           </Button>

@@ -11,6 +11,9 @@ function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassWord] = useState("");
   const [passComment, setPassComment] = useState({ message: "", textColor: "" });
+
+
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
