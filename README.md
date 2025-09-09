@@ -21,7 +21,7 @@ SocioVerse is a full-stack social media web application built on the MERN stack 
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB
 - **Real-Time Communication**: Socket.io
-- **Authentication**: bcrypt , jasonwebtoken(JWT)
+- **Authentication**: bcrypt, jsonwebtoken (JWT)
 - **Job Queue & Caching**: BullMQ, Redis
 - **Media Streaming**: HLS
 
@@ -41,25 +41,31 @@ SocioVerse is a full-stack social media web application built on the MERN stack 
     cd SocioVerse
     ```
 
-2. **Install dependencies**
-    ```bash
-    npm install
-    ```
+2. **Install dependencies**  
+   Run `npm install` in the relevant directories (`Frontend/chatApp/`, `Backend/server/`, `videoServices/`) to install dependencies for each service.
 
 3. **Configure Environment Variables**
 
-    Create a `.env` file in the root directory and add your configuration for MongoDB, Redis, and other secrets.
+    Create a `.env` file in the appropriate directories and add your configuration for MongoDB, Redis, and other secrets.
 
-4. **Run the Application**
+### Running the Application
 
-    **Backend:**
+- **Frontend**  
     ```bash
-    npm run server
+    cd Frontend/chatApp/
+    npm run dev
     ```
 
-    **Frontend:**
+- **Backend**  
     ```bash
-    npm run client
+    cd Backend/server/
+    npm run dev
+    ```
+
+- **Video Services (Reels & Streaming)**  
+    ```bash
+    cd videoServices/
+    npm start
     ```
 
 ## Usage
