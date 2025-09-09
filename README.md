@@ -12,18 +12,23 @@ SocioVerse is a full-stack social media web application built on the MERN stack 
 - **Reels**: Create, upload, and share short video reels with your followers.
 - **Reels Posting**: Browse, like, and interact with reels posted by users.
 - **HLS Streaming**: Supports HTTP Live Streaming for media content, including reels.
-- **Authentication**: Secure login and registration using bcrypt for password hashing.
+- **Authentication**: Secure login and registration using bcrypt for password hashing and JWT for authorization.
 - **Background Jobs**: Utilizes BullMQ and Redis for efficient job processing and queue management.
+- **Media Management**: Store and serve media files using Cloudinary.
+- **Email Services**: Send notifications and emails using Nodemailer.
 
 ## Tech Stack
 
-- **Frontend**: React.js
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB
-- **Real-Time Communication**: Socket.io
-- **Authentication**: bcrypt, jsonwebtoken (JWT)
-- **Job Queue & Caching**: BullMQ, Redis
-- **Media Streaming**: HLS
+- **Frontend:** React.js, Redux, Tailwind CSS, Axios
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB, Mongoose
+- **Authentication:** bcrypt, JWT (jsonwebtoken)
+- **State Management:** Redux
+- **API Requests:** Axios
+- **Real-Time Communication:** Socket.io
+- **Job Queue & Caching:** BullMQ, Redis
+- **Media Storage & Streaming:** Cloudinary,SupaBase, HLS
+- **Email Service:** Nodemailer
 
 ## Getting Started
 
@@ -46,7 +51,7 @@ SocioVerse is a full-stack social media web application built on the MERN stack 
 
 3. **Configure Environment Variables**
 
-    Create a `.env` file in the appropriate directories and add your configuration for MongoDB, Redis, and other secrets.
+    Create a `.env` file in the appropriate directories and add your configuration for MongoDB, Redis, Cloudinary, JWT secrets, email credentials, and other necessary values.
 
 ### Running the Application
 
@@ -76,6 +81,7 @@ SocioVerse is a full-stack social media web application built on the MERN stack 
 - Follow or unfollow users.
 - Start private chats with friends in real time.
 - Create, upload, and view reels.
+- Receive notifications and emails about activities.
 
 ## Contributing
 
