@@ -5,6 +5,7 @@ import LeftSideBar from "./LeftSideBar";
 import TweetCard from "../Tweets/TweetCard.jsx";
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import SpinnerWithText from "../LoadingSpinner.jsx";
 //  import CurrentUserProfile from './CurrentUserProfile.jsx'
 import LeftSideBarUserProfile from "./LeftSideBarUserProfile.jsx";
@@ -12,9 +13,10 @@ import Logo from "./Logo.jsx";
 import ChatNotification from "./ChatNotification.jsx";
 import TweetNotification from "./TweetNotifications.jsx";
 import SettingsComponent from "./Settings.jsx";
+import { useSelector } from "react-redux";
 // import CreatePostButton from './CreatePostButton.jsx'
 import CreatePostComponent from "./PostCreate/CreatePostComponent.jsx";
-
+import { ToastContainer } from "react-toastify";
 
 function Dashboard() {
   const Url = import.meta.env.VITE_API_URL;
@@ -22,8 +24,11 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [chatNotification, setChatNotification] = useState([]);
   const data = ["hello", "world", "this", "is", "a", "test"];
- 
+ const [follower,setFollower] = useState({followerCount:0,followingCount:0});
 //  frtching data of all new unread chat messages
+ const user_Id = useSelector((state) => state.auth.userData._id)
+console.log("check_user_id", user_Id)
+const navigate = useNavigate();
   const getChatMessage = async()=>{
     try{
       const notifications = await axios.get(`${Url}/notification/chatsNotifications`,{withCredentials:true})
@@ -34,9 +39,32 @@ function Dashboard() {
     catch(err){
        console.log("something went wrong in fetching  chat notifications",err)
     }
-    
+  
 
   }
+  // useEffect to get current user follower and following details
+  useEffect(()=>{
+     const fetchData = async()=>{
+      try{
+  const res = await axios.get(`http://localhost:3000/api/v1/user/user_data/${user_Id}`,{withCredentials:true})
+  console.log("check what we getting at follower::", res)
+   if(!res){
+      throw new Error("unable to fetch user data");
+   }
+   setFollower({
+    followerCount:res.data.response[0].Followers.length,
+    followingCount:res.data.response[0].Following.length
+   })
+  
+      }
+      catch(err){
+        console.log("error creating fetch follwer=>",err)
+        
+      }
+     }
+     fetchData();
+     
+  },[])
   // useEffect for fetching all available tweets  
   useEffect(() => {
     const fetchTweet = async () => {
@@ -51,34 +79,41 @@ function Dashboard() {
     fetchTweet();
     getChatMessage();
   }, []);
+   console.log(follower)
  const  newDate = (currentDate)=>{
    const updatedDate = new Date(currentDate);
    const timeAgo =formatDistanceToNow(updatedDate, { addSuffix: true });
    return timeAgo;
  }
+
+//  useEffect  ckeck is the tweet kiked or not
+// useEffect(()=>{
+//   const isTweetLiked =
+// },[])
   return (
     <div className=" grid  sm:grid-cols-12   gap-1 min-h-full min-w-full overflow-hidden relative">
+      {/* <ToastContainer/> */}
       {/*  left sidebar */}
-      <div className=" sm:col-span-2  sm:block shadow-md px-2 py-2 bg-inherit bg-opacity-30 ">
+      <div className=" sm:col-span-2  sm:block shadow-md px-2 py-2  bg-opacity-30 ">
         <Logo />
-        <LeftSideBarUserProfile />
-
+        <LeftSideBarUserProfile followers = {follower.followerCount}  followings ={follower.followingCount} />
         <div className="py-2 my-2">
           <LeftSideBar />
         </div>
       </div>
 
       {/* centerContent */}
-      <div className=" sm:col-span-7  bg-blue-500 relative shadow-sm bg-opacity-15 rounded-2xl px-3 py-4 w-full h-full overflow-y-scroll scrollbar-custom overflow-x-hidden ">
+      <div className=" sm:col-span-7  relative shadow-sm  rounded-2xl px-3 py-4 w-full h-full overflow-y-scroll scrollbar-custom overflow-x-hidden ">
+        <ToastContainer/>
         <div id="createPost" className="flex justify-center items-center  ">
           <CreatePostComponent variableClassName={"w-full"} />
         </div>
         <div
           id="tweets_area"
-          className="h-auto sm:min-w-full shadow-lg  bg-blue-500 bg-opacity-15 my-3 rounded-2xl "
+          className="h-auto sm:min-w-full shadow-lg  bg-blue-950/15 my-3 rounded-2xl "
         >
           <DashboardNavbar />
-          <div className="sm:h-full sm:w-full grid  md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 py-3 ">
+          <div className=" mx-auto sm:h-full sm:max-w-[70%] grid  md:grid-cols-1 gap-6 px-4 py-3 ">
           { isLoading? <SpinnerWithText designClass="absolute top-1/2 right-1/2 " /> :
 
           
@@ -95,10 +130,12 @@ function Dashboard() {
                  handle={item.UserData[0].userName}
                  likes={""}
                  timestamp={newDate(item.UserData[0].updatedAt)}
-                 
+                  className={"cursor-pointer"}
                  comments={""}
                  retweets={""}
-
+                onClick={()=>{
+                  navigate(`/tweet/${item?._id}`)
+                }}
               />
             ))}
           </div>
@@ -110,9 +147,9 @@ function Dashboard() {
       <div className=" flex flex-col p-4  bg-inherit sm:col-span-3  rounded-2xl bg-opacity-15 shadow-md gap-4 overflow-y-scroll scroll-smooth scrollbar-custom ">
         <div
           id="trending_topics"
-          className="sm:min-w-full sm:h-[35vh] bg-blue-700 rounded-2xl shadow-lg bg-opacity-15 p-2"
+          className="sm:min-w-full sm:h-[35vh] bg-blue-700 border border-slate-700 rounded-2xl shadow-lg bg-opacity-15 p-2"
         >
-          <h1 className="text-blue-500 font-bold text-lg  px-2 py-4">
+          <h1 className="text-sky-500 font-semibold text-sm font-poppins  px-2 py-4">
             Trending Topics
           </h1>
           <div className="flex flex-col gap-2">
@@ -125,9 +162,9 @@ function Dashboard() {
 
         <div
           id="chatNotification"
-          className="sm:min-w-full sm:h-[35vh] bg-blue-700 rounded-2xl shadow-lg bg-opacity-15 p-2 overflow-y-clip"
+          className="sm:min-w-full sm:h-[35vh] border border-slate-700 rounded-xl shadow-lg bg-opacity-15 bg-blue-950 p-2 overflow-y-clip"
         >
-          <h1 className="text-blue-500 font-bold text-lg px-2 py-4">
+          <h1 className="text-sky-300 font-poppins font-semibold text-sm px-2 py-4 ">
             Chat Notifications
           </h1>
           <div className="flex flex-col gap-2 overflow-y-scroll scrollbar-custom max-h-full rounded-2xl  p-2">
@@ -147,9 +184,9 @@ function Dashboard() {
 
         <div
           id="tweetNotification"
-          className="sm:min-w-full sm:h-[35vh] bg-blue-700 rounded-2xl shadow-lg bg-opacity-15 p-2 overflow-y-clip"
+          className="sm:min-w-full  sm:h-[35vh] border border-slate-700 bg-blue-950  rounded-xl shadow-lg bg-opacity-15 p-2 overflow-y-clip "
         >
-          <h1 className="text-blue-500 font-bold text-lg  px-2 py-4">
+          <h1 className="text-sky-300 font-semibold text-md font-poppins   px-2 py-4">
             Tweet Notifications
           </h1>
           <div className="flex flex-col gap-2 overflow-y-scroll scrollbar-custom max-h-full  ">
@@ -167,7 +204,7 @@ function Dashboard() {
 
         <div
           id="settings"
-          className="sm:min-w-full sm:h-[35vh] bg-blue-700 rounded-2xl shadow-lg bg-opacity-15 p-2"
+          className="sm:min-w-full sm:h-[35vh] rounded-xl shadow-xl bg-opacity-30 p-2 border border-slate-700 "
         >
           <SettingsComponent />
         </div>

@@ -23,7 +23,8 @@ function ChatNotification({ profilePicSrc, notificationReceived,content,notifica
   }, [notificationReceived]);
 
   return (
-  <div className={ isSeen?`hidden`:`flex items-center gap-3 p-3 rounded-xl shadow-md bg-white border border-slate-200 font-montserrat transition-all duration-300`} onClick={()=>{
+  <div className={ isSeen?`hidden`:`flex items-center gap-3 p-3 rounded-xl shadow-md bg-white border border-slate-200 font-montserrat transition-all duration-300 cursor-pointer`} onClick={()=>{
+  handeIsMessageRead(notificationId) ;
   navigate(`/center_area/${convoID}`)
   }}>
       

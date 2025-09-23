@@ -10,10 +10,10 @@ function TweetNotification({ profilePicSrc, userName, tweetContent, notification
   }, [notificationReceived]);
 
   return (
-    <div className="flex items-start gap-3 p-4 rounded-xl shadow-md bg-white border border-slate-200 font-montserrat transition-all duration-300">
+    <div className="flex items-start gap-3 py-2 px-4 rounded-lg shadow-md bg-slate-950/10 border border-sky-200/10 font-montserrat transition-all duration-300">
       
       {/* Profile Picture */}
-      <div className="h-10 w-10 rounded-full border-2 border-white overflow-hidden shadow-md bg-gradient-to-br from-slate-800 to-slate-600">
+      <div className="h-10 w-10 rounded-full border-2 border-sky-200 overflow-hidden shadow-md bg-gradient-to-br from-slate-800 to-slate-600">
         <img
           src={profilePicSrc}
           alt={`${userName}'s profile`}

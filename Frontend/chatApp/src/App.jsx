@@ -84,6 +84,9 @@ function App() {
                   
                  
                        })
+                       globalSocket.off("addedComment",()=>{
+                        console.log("added comment turned off");
+                       })
         }
 
    },[globalSocket])
@@ -95,18 +98,6 @@ function App() {
     <div className="h-full w-full flex justify-center items-center flex-col">
       
    <Container>
- {/* <ForgotPass/> */}
-    {/* <div className='bg-red-500/10 text-white font-bold font-poppins flex flex-col gap-2 justify-center items-center absolute top-50 '>
-       <h1>{t("welcome")}</h1>
-      <button className='hover:transition-all duration-150 ease-linear hover:text-white/50' onClick={() => changeLanguage("en")}>English</button>
-      <button className='hover:transition-all duration-150 ease-linear hover:text-white/50' onClick={() => changeLanguage("hi")}>हिन्दी</button>
-    </div> */}
-   {/* <LandingPage/> */}
-     {/* <input type="text" name="new_input" id="input_ka_id "  value={newVal} onChange={handleChange} />
-      <button  onClick={handleSendMessage} className='border-2 rounded-lg  border-blue-600 p-2 mt-5 bg-slate-400'>send maessage</button>
-      {reply && <div>{reply}</div>} */}
-      {/* <ContactList/> */}
-      {/* <ChatingSpace/> */}
    <Outlet/>
    </Container>
     

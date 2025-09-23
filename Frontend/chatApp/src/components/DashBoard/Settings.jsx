@@ -9,19 +9,19 @@ function SettingsComponent() {
   className={`${
     isSettingOpen
       ? "sm:h-[80vh] sm:w-[32rem] absolute top-10 right-6 z-50 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950"
-      : "sm:h-[35vh] sm:w-full bg-white"
+      : "sm:h-[35vh] sm:w-full bg-none"
   } 
   
-  rounded-2xl shadow-xl 
+  rounded-2xl  
   flex flex-col justify-center items-center gap-6 
   p-6 font-montserrat
-  border border-slate-700/50
+  
   transition-all duration-300 ease-linear`}
 >
       
       {/* Heading */}
-      <h1 className={`${isSettingOpen?" hover:text-white":"hover:text-blue-500"} text-2xl font-bold text-slate-700 flex items-center font-poppins gap-2 hover:transition-all duration-150 linear-ease`}>
-        <SettingsIcon className={`text-slate-500 ${isSettingOpen?" hover:text-white":"hover:text-blue-500"}`} onClick={()=>{
+      <h1 className={`${isSettingOpen?" hover:text-white":"hover:text-blue-500"} text-2xl font-bold text-white flex items-center font-poppins gap-2 hover:transition-all duration-150 linear-ease`}>
+        <SettingsIcon className={`text-white ${isSettingOpen?" hover:text-white":"hover:text-blue-500"}`} onClick={()=>{
           setIsSettingOpen(!isSettingOpen)
         }} />
         Settings

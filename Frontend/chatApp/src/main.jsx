@@ -36,6 +36,8 @@ import SendEmail from "./components/ForgotPassword/SendEmail.jsx";
 import MessageInterface from "./components/messageComponents/MessageInterface.jsx";
 import PostInterFace from "./components/DashBoard/PostCreate/PostInterFace.jsx";
 import ResetPassword from "./components/ForgotPassword/ResetPassword.jsx";
+import Start_Chat_Page from "./components/ChatSpacing/Start_Chat_Page.jsx";
+import UserTweets from "./components/Users/UserTweets.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -86,6 +88,12 @@ const router = createBrowserRouter([
         element: <ChatingSpace/>,
         children: [
           {
+            path:"start_chat",
+            element: <Start_Chat_Page/>
+          },
+
+          {
+            
             path: ":conversationId",
             element: <ChatArea />,
            
@@ -99,6 +107,10 @@ const router = createBrowserRouter([
       {
         path: "/reels",
         element: <Reels />,
+      },
+      {
+        path: "/tweet/:tweet_id",
+        element: <UserTweets/>,
       },
       {
         path: "/feeds",

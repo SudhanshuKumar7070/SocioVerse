@@ -8,7 +8,7 @@ function LeftSideBar() {
     {
       name: "Messages",
       icon: <MessageSquare className='text-sky-400' size={20} />,
-      link: "/center_area"
+      link: "/center_area/start_chat"
     },
     {
       name: "Notifications",
@@ -47,7 +47,7 @@ function LeftSideBar() {
             onClick={() => navigate(item.link)}
           >
             {item.icon}
-            <span className='font-semibold text-sky-200'>{item.name}</span>
+            <span className='font-semibold text-sky-200 font-montserrat'>{item.name}</span>
           </div>
         ))
       }

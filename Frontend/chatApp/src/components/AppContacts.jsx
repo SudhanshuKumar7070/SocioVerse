@@ -104,7 +104,6 @@ function AppContact() {
           </p>
         )}
       </ul>
-
       {data.length > 0 && (
         <Button className="mt-4" onClick={handleAddToContact}>
           Add to Contact

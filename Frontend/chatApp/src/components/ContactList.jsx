@@ -11,7 +11,9 @@ import SpinnerWithText from "./LoadingSpinner.jsx"
 // }
 
 function ContactList(
-   propClass
+  { propClass,
+   name=""
+  }
 ) {
   const [isLoading, setIsLoading] = useState(true);
   const socket = useSocket();
@@ -25,29 +27,36 @@ function ContactList(
     try {
       const response = await axios.get(`${Url}/user/user_contacts/${id}`);
       return response?.data?.response || [];
+
     } catch (err) {
       console.error("Error fetching data:", err);
       return [];
     }
   };
 
+// useEffect to get current value -
+
   useEffect(() => {
     setIsLoading(true);
     const fetchDataWrapper = async () => {
       const data = await fetchData();
+      console.log("real data of contact lists:>",data)
+      const filteredData =  data[0].contacts.filter((el)=>el.fullName.toLowerCase().includes(name.toLowerCase()) || el.userName.toLowerCase().includes(name.toLowerCase()));
+      console.log("name we got.,",name)
+      console.log("filtered data", filteredData)
       setIsLoading(false);
       console.log("data:", data[0].contacts);
       if (!data)  {setIsLoading(false);
         return
       }
       
-      setApiData(data[0]?.contacts);
+      setApiData(filteredData);
       console.log("useStated Data:", apiData);
-      return data
+      return filteredData
     };
 
    const data= fetchDataWrapper();
-  }, []); // Empty array ensures this runs only once
+  }, [name]); // Empty array ensures this runs only once
   // useEffect for genrating chat
 
  const handleCreateChat = (element)=>{

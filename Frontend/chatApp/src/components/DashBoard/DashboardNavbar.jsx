@@ -22,7 +22,7 @@ function DashboardNavbar() {
         { name: "AI Development" },
     ]
   return (
-    <div className='flex justify-between items-center bg-slate-800/90 border-b border-slate-700 py-6 shadow-lg min-w-full sm:h-[8vh] h-5  top-0 left-0 right-0 z-10 overflow-x-scroll overflow-y-hidden scroll-smooth scrollbar-custom font-poppins sticky rounded-lg'>
+    <div className='flex justify-between items-center bg-slate-800/90 border-b backdrop-blur-md border-slate-700 py-6 shadow-lg min-w-full sm:h-[8vh] h-5  top-0 left-0 right-0 z-10 overflow-x-scroll overflow-y-hidden scroll-smooth scrollbar-custom font-poppins sticky rounded-lg'>
       {
         navbarItems.map((item, index) => (
           <div 

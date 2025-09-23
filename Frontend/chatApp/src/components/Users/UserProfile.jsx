@@ -4,8 +4,8 @@ import { MapPin, Settings } from 'lucide-react';
 import { useState } from 'react';
 import IconWithTooltip from './SettingIcon';
 import ProfileSettingBar from './ProfileSettingBar';
-function UserProfile() {
 
+function UserProfile() {
   const currentUser = useSelector((state) => state.auth?.userData);
 const refrer = useRef(null);
 const  [openSettingModel ,setOpenSettingModel] = useState(false)
