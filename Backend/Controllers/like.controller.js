@@ -17,7 +17,7 @@ const isTweetLiked =  async(req,tweetId)=>{
 }
 
 // check is comment like
-const isCommentLiked =  async(req,commentId)=>{
+const isCommentLiked =  async(req)=>{
     const loginId = req.user._id;
     const currentLike = await Like.findOne({
       owner:loginId,
@@ -86,6 +86,26 @@ const toggleCommentLike = AsyncHandler(async(req,res)=>{
     }
 
 })
+const IsCurrentTweetOrCommentLiked = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(400, "Unauthorized user");
+
+  const commentId = req.params.commentId?.trim();
+  const tweetId = req.params.tweetId?.trim();
+  const id = commentId || tweetId;
+
+  if (!id) throw new ApiError(400, "Either commentId or tweetId is required");
+  if (!mongoose.Types.ObjectId.isValid(id)) throw new ApiError(400, "Invalid ID format");
+
+  const queryKey = commentId ? "comments" : "tweets";
+
+  const likeStatus = await Like.findOne({
+    owner: userId,
+    [queryKey]: new mongoose.Types.ObjectId(id),
+  });
+
+  return res.status(200).json({ liked: Boolean(likeStatus) });
+});
  //TODO: get lists of all liked comments
  // TODO: get list of all liked Tweets
 export {

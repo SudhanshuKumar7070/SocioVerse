@@ -3,7 +3,7 @@ import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
  const tweetSchema = new mongoose.Schema({
   userId:{
     type:mongoose.Schema.Types.ObjectId,
-    ref:"User"
+    ref:"User"  // actually user is the owner
   },
     TextContent:{
     type:String,

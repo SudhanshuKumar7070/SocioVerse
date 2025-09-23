@@ -7,7 +7,7 @@ import { AsyncHandler } from "../Utils/AsyncHandler.js";
 import { uploadProfileImage } from "../Utils/uploadToCloudinary.js";
 import { User } from "../Models/user.model.js";
 
-// cretate a tweet
+// cretate a tweet---------------------->
  
 const createTweet = AsyncHandler(async(req, res) =>{
        const {TextContent}= req.body;
@@ -45,7 +45,7 @@ const createTweet = AsyncHandler(async(req, res) =>{
             return res.status(200).json( new ApiResponse(200,tweet,"tweet created successfully"));
 
 })
-//  delete tweets
+//  delete tweets _______----------->
 const deleteTweet = AsyncHandler(async(req,res)=>{
       const {tweetId} = req.params;
       if(!tweetId) throw new ApiError(400,"tweet id is required")
@@ -64,7 +64,7 @@ const deleteTweet = AsyncHandler(async(req,res)=>{
 
           return res.status(200).json(new ApiResponse(200,deletedTweet,"tweet deleted successfully"));
 })
- // edit tweet text content
+ // edit tweet text content  _------------------>
 const editTweet = AsyncHandler(async(req,res)=>{
      const {tweetId} = req.params;
 
@@ -85,7 +85,7 @@ const updatedTweet = await Tweet.findByIdAndUpdate(tweetId,{content:content},{ne
  if(!updatedTweet) throw new ApiError(400,"unable to update tweet at the moment")
     return res.status(200).json(new ApiResponse(200,updatedTweet,"tweet updated successfully"))
 })
-// edit image of tweet ;
+// edit image of tweet ;  ----------->     
  const editTweetUrl = AsyncHandler(async(req,res)=>{
    const userId = req.user?._id;
     if(!userId) throw new ApiError(400,"unauthorised access ");
@@ -106,7 +106,7 @@ const updatedTweet = await Tweet.findByIdAndUpdate(tweetId,{content:content},{ne
     return res.status(200).json(new ApiResponse(200,updatedImage,"data updated successfully"))
  })
 
-// get all tweets of logged in user
+// get all tweets of logged in user ---->  ////////////////////   ---------------
 const listAllTweetsOfUser = AsyncHandler(async(req,res)=>{
      const userId = req.user._id;
      if(!userId) throw new ApiError(400 , " unathorised action")
@@ -124,9 +124,50 @@ $sort:{
 })
 
   // TODO: create a endpoint to all tweets of all users -> any one can read and write tweets
+//  get a particulr tweet of a tweet id'
 
+const getTweetByTweetId = AsyncHandler(async (req, res) => {
+  const user = req.user?._id;
+  const tweetId = req.params?.tweet_id;
 
-  // get all tweets , available in database
+  if (!user) throw new ApiError(402, "Authentication required!");
+  if (!tweetId.trim() || !mongoose.Types.ObjectId.isValid(tweetId)) {
+    throw new ApiError(400, "Invalid tweet ID");
+  }
+
+  const tweetObjectId = new mongoose.Types.ObjectId(tweetId);
+
+  const userTweet = await Tweet.aggregate([
+    { $match: { _id: tweetObjectId } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "owner_data"
+      }
+    },
+    {
+      $project: {
+        "owner_data.password": 0,
+        "owner_data.RefreshToken": 0,
+        "owner_data.bio": 0,
+        "owner_data.contacts": 0
+        
+      }
+    }
+  ]);
+
+  console.log("Tweet data:", userTweet);
+
+  if (!userTweet.length) throw new ApiError(400, "Tweet not found for this ID");
+
+  return res.status(200).json(new ApiResponse(200, userTweet[0], "Tweet fetch success"));
+});
+
+  // get all tweets , available in database --->>>>>................_---------------------->>>>>>.........
+
+  
     const getAllTweets = AsyncHandler(async(req,res)=>{
         const  loginId = req.user._id;
         if(!loginId) throw new ApiError(400,"unauthorised access")
@@ -206,4 +247,4 @@ $sort:{
   
 
 
-export {createTweet,deleteTweet,editTweet,listAllTweetsOfUser,getAllTweets,getIndividualsTweets}
+export {createTweet,deleteTweet,editTweet,listAllTweetsOfUser,getAllTweets,getIndividualsTweets,getTweetByTweetId}

@@ -1,6 +1,6 @@
 import  {Router} from 'express';
 import { upload } from '../Middlewares/multer.middlewares.js';
-import  {createTweet,deleteTweet,editTweet,listAllTweetsOfUser,getAllTweets} from "../Controllers/tweet.controller.js"
+import  {createTweet,deleteTweet,editTweet,listAllTweetsOfUser,getAllTweets, getTweetByTweetId} from "../Controllers/tweet.controller.js"
 import { verifyJWT } from '../Middlewares/verifyJwt.js';
 
  const router = Router();
@@ -14,4 +14,5 @@ import { verifyJWT } from '../Middlewares/verifyJwt.js';
   router.route("/deleteTweet/:tweetId").delete(verifyJWT,deleteTweet);
    router.route("/editTweet/:tweetId").patch(verifyJWT,editTweet);
    router.route("/listAllTweetsOfUser").get(verifyJWT,listAllTweetsOfUser);
+   router.route("/getTweetById/:tweet_id").get(verifyJWT,getTweetByTweetId)
  export default router

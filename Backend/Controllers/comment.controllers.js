@@ -9,8 +9,9 @@ import { Comment } from "../Models/comment.model.js";
 import { Tweet } from "../Models/tweet.model.js";
 import { Notification } from "../Models/notification.model.js";
 
-const globalNameSpace = getGlobalNamespace();
+
 const createComment = AsyncHandler(async (req, res) => {
+  const globalNameSpace = getGlobalNamespace();
   const userId = req.user._id;
   if (!userId) throw new ApiError(400, "unauthorised access");
   const { tweetId } = req.params;
@@ -20,9 +21,12 @@ const createComment = AsyncHandler(async (req, res) => {
   const { content } = req.body;
   if (!content) throw new ApiError(400, "content is required");
   // check if tweet is present or not
-  const isTweetPresent = await Tweet.findById(tweetId);
-  if (!isTweetPresent) throw new ApiError(400, "tweet not found");
+  const isTweetAvailable = await Tweet.findById(tweetId);
+  if (!isTweetAvailable) throw new ApiError(400, "tweet not found");
   // comment karne ke liye owner hone ki koi need nahi hai
+  
+  // for notification sending tweet pwner id is much important
+  console.log(' type of tweet owner == ', typeof(isTweetAvailable.userId));
   
   const comment = await Comment.create({
     owner: userId,
@@ -35,12 +39,14 @@ const createComment = AsyncHandler(async (req, res) => {
     {
       content:"someone commented in your tweet",
       sender:userId,
-      receiver:isTweetPresent?.owner,
+      receiver:isTweetAvailable?.userId,
       service:"tweet"
     }
   )
+
   if(!commmentNotification) throw new ApiError(500,"something went wrong in creating tweet message  ")
-    globalNameSpace.emit("addedComment",{commmentNotification})
+    const notificationReceiver = isTweetAvailable?.userId.toString();
+    globalNameSpace.to(notificationReceiver).emit("addedComment",{commmentNotification})
   return res
     .status(200)
     .json(new ApiResponse(200, comment, "comment created successfully"));
