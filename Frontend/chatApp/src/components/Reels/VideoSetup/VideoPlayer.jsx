@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import videojs from 'video.js';
 // import { use } from 'video.js/dist/types/tech/middleware';
-import 'video.js/dist/video-js.css';
+ import 'video.js/dist/video-js.css';
 
 const VideoPlayer = ({ src }) => {
   const videoRef = useRef(null);

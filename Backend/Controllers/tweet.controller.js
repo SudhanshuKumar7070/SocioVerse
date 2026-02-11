@@ -106,7 +106,7 @@ const updatedTweet = await Tweet.findByIdAndUpdate(tweetId,{content:content},{ne
     return res.status(200).json(new ApiResponse(200,updatedImage,"data updated successfully"))
  })
 
-// get all tweets of logged in user ---->  ////////////////////   ---------------
+// get all tweets of logged in user ---->  ////////////////////   --------------- for current user dashboard
 const listAllTweetsOfUser = AsyncHandler(async(req,res)=>{
      const userId = req.user._id;
      if(!userId) throw new ApiError(400 , " unathorised action")
@@ -183,19 +183,63 @@ const getTweetByTweetId = AsyncHandler(async (req, res) => {
           const pageNo = parseInt(page) > 0 ? parseInt(page) : 1;
           const limitNo = parseInt(limit) > 0 ? parseInt(limit) : 10;
           const skip = (pageNo - 1) * limitNo;
-          const tweet = await Tweet.aggregate([{
+          const tweet = await Tweet.aggregate([
+            {
+           $sort: {
+      [sortBy]: sortType === "desc" ? -1 : 1
+    }
+            },
+            // Pagination
+  { $skip: skip },
+  { $limit: limitNo },
+
+            {
             $lookup:{
               from:"users",
                localField:"userId",
                foreignField:"_id",
                as:"UserData"
             }
-          },{
+          },
+          {
+$lookup:{
+  from:"likes",
+  localField:"_id",
+  foreignField:"tweets",
+  as:"likes"
+}
+          },
+
+{
+  $addFields:{
+    isLikedByUser:{
+     $in:[
+      loginId,{
+        $map:{
+          input:"$likes",
+          as:"l",
+          in: "$$l.owner"
+        }
+      }
+     ]
+    },
+    likeCount:{
+      $size:"$likes"
+    }
+  }
+},
+
+          {
             $project:{
               TextContent:1,
               imageUrl:1,
               videoContent:1,
-              UserData:1
+              UserData:1,
+      isLikedByUser: 1,
+      likeCount: 1,
+      
+
+
             }
           },{
             $sort:{

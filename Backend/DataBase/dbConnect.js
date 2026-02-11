@@ -6,8 +6,7 @@ import mongoose from 'mongoose'
      
     }
     catch(err){
-console.log('error in connecting data base:',err);
-
+console.log('error in connecting data base:',err)
     }
     
   }

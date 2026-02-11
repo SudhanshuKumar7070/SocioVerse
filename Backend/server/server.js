@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
+import "dotenv/config";
 import { initiliseGlobalNameSpace } from "./globalNameSpace.js";
-import { subscriber,publisher } from "./redis.server.js";
+// import { subscriber,publisher } from "./redis.server.js";
 import { Conversation } from "../Models/conversation.model.js";
 import { Message } from "../Models/message.model.js";
 // import { Server } from "socket.io";
@@ -156,7 +157,7 @@ const io = initiliseIo(server);
       //   console.log('error in connecting publisher at send message',publishData);
         
       //  }
-      publisher.publish("chat_Notification_channel",JSON.stringify({data: message}));
+      // publisher.publish("chat_Notification_channel",JSON.stringify({data: message}));
 
       // checking output of message array.
       console.log("message result :", message);

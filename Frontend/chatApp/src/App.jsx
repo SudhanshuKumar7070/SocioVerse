@@ -12,10 +12,16 @@ import { useContext } from 'react';
 import { contextMap } from './store/NotificationMap.jsx';
 import landingPage from './components/LandingPage/landingPage.jsx';
 import LandingPage from './components/LandingPage/landingPage.jsx';
-// import ForgotPass from './components/ForgotPass.jsx';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { login } from './store/authSlice.js';
+import { setTokens } from './store/tokenSlice.js';
+// import ForgotPass from './co
+// mponents/ForgotPass.jsx';
 // import ChatingSpace from './components/ChatSpacing/ChatingSpace.jsx';
 function App() {
   const {t , i18n} = useTranslation();
+  const dispatch = useDispatch();
   // method to cahange language 
   const changeLanguage = (lng)=>{
     i18n.changeLanguage(lng);
@@ -91,7 +97,28 @@ function App() {
 
    },[globalSocket])
   
-  
+const get_Current_User = async()=>{
+try{
+const user = await axios.get(`http://localhost:3000/api/v1/user/current_user_data`,{withCredentials:true});
+if(!user) alert("user not fetched at moment");
+const data = user.data.response;
+console.log("dataa === ", data ,"at app.jsx");
+console.log("refreshToken === ", data.RefreshToken ,"at app.jsx");
+    dispatch(login({
+      userData:data,
+      token:data.RefreshToken
+    }))
+   dispatch(setTokens({
+    refreshToken:data.RefreshToken
+   }))
+    }
+    catch(err){
+      console.log("error occured in getting current user" , err)
+    }
+   }
+  useEffect(()=>{
+    get_Current_User();
+  },[])
 
    
   return (

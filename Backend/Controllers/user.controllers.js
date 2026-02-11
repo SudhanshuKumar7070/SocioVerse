@@ -617,6 +617,15 @@ const resetPassword = AsyncHandler(async (req, res) => {
     .json(new ApiResponse(200, updatedUser, "Password changed successfully"));
 });
 
+// get current user data for reloads
+const getCurrentUserData = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if(!userId) throw new ApiError(400,"unauthorised access");
+  const user = await User.findById(userId)
+  if(!user) throw new ApiError(404,"user not found at the moment");
+  return res.status(200).json(new ApiResponse(200,user,"data fetched successfully"))
+
+})
 
 export {
   registerUser,
@@ -633,4 +642,6 @@ export {
   sendResetPassMail,
   matchForgotCode,
   resetPassword,
+  getCurrentUserData
+
 };

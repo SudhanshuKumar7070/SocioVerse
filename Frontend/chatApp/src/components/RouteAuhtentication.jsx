@@ -6,7 +6,7 @@ import SpinnerWithText from './LoadingSpinner';
 function RouteAuhtentication({reqAuthentication= true , children}) {
     const [loading, setLoading] = useState(true);
     const isUserAuthenticated = useSelector((state)=>state.auth.isAuthenticated);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     useEffect(()=>{
         const checkRouteAuthentication= ()=>{
             if( reqAuthentication && isUserAuthenticated !==reqAuthentication ){

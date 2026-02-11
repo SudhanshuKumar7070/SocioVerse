@@ -120,7 +120,30 @@ const editComment = AsyncHandler(async (req, res) => {
            $match:{
                tweet:new mongoose.Types.ObjectId(tweetId)
            }
-          },{
+          },
+          {
+            $lookup:{
+              from:"users",
+              foreignField:"_id",
+              localField:"owner",
+              as:"commentOwner"
+            }
+          },
+          {
+            $unwind:"$commentOwner"
+          },
+          {
+            $project:{
+              "content":1,
+              "createdAt":1,
+              "_id":1,
+              "commentOwner.fullName":1,
+              "commentOwner.profilePicture":1,
+              "commentOwner.userName":1,
+            }
+          },
+
+          {
             $sort:{
               createdAt:-1
             }

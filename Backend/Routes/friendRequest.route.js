@@ -1,5 +1,6 @@
 import {Router} from "express"
 import { verifyJWT } from "../Middlewares/verifyJwt.js";
+import { apiRateLimiter } from '../Middlewares/ratelimiter.js';
 import {sendFriendRequest, acceptFriendRequest,checkIsFriendRequestAccepted,getAllFriendRequest,rejectFriendRequest} from '../Controllers/friendRequest.controller.js'
  const router = Router();
 

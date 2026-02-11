@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 function LeftSideBarUserProfile({followers=0 , followings= 0}) {
   const navigate = useNavigate();
     const currentUserData = useSelector((state) => state.auth.userData);
-    
+      console.log("check user data at leftprofilecomponent",currentUserData)
   return (
     <div className='w-full  flex flex-col justify-start items-start gap-2 p-4 rounded-lg shadow-lg bg-opacity-15 bg-blue-300 font-montserrat'>
      <div className="flex justify-center mx-auto mb-2 ">

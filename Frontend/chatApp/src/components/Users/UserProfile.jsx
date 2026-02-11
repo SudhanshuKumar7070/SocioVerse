@@ -2,30 +2,43 @@ import React, { useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { MapPin, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import IconWithTooltip from './SettingIcon';
 import ProfileSettingBar from './ProfileSettingBar';
+// import { setDragLock } from 'framer-motion';
 
 function UserProfile() {
   const currentUser = useSelector((state) => state.auth?.userData);
+ const userId = currentUser?._id;
 const refrer = useRef(null);
+const [errorMessage,setErrorMessage]= useState("")
+const[loading, setLoading] = useState(false);
 const  [openSettingModel ,setOpenSettingModel] = useState(false)
+const [user,setUser] = useState({})
+  
   const handleFollowUser = () => console.log('Follow user clicked');
   const handleSendFriendRequest = () => console.log('Friend request clicked');
   const handleOpnenSettingModel =()=>{
      openSettingModel?setOpenSettingModel(false):setOpenSettingModel(true)
   }
+  // useeffect for fetching current user data
+const fetch_user = async()=>{
+  setLoading(true)
+  try{
+ const response = await axios.get()
+  }
+  catch(err){
+setLoading(false);
+setErrorMessage(err.message)
+ console.log(err)
+  }
+  finally{
+    setLoading(false)
+  }
+}
   return (
     
     <div className="h-[85vh] w-[65vw] mx-auto rounded-2xl bg-gradient-to-r from-black via-blue-950 to-black shadow-2xl p-4 flex flex-col gap-4 overflow-hidden relative">
-      {/* Banner Section */}
-      {/* <span className='absolute right-10 top-10 text-slate-500 flex justify-center items-center hover:transition-all hover:duration-300 hover:ease-linear' onMouseEnter={()=>{
-        setTextDisplay(true)
-      }} onMouseLeave={()=>{
-       setTextDisplay(false)
-      }}>
-      <Settings className='text-blue-500 cursor-pointer ' />
-      <p ref={refrer} className={ textDisplay?`block font-poppins bg-slate-950 shadow-lg  rounded-md px-2 py-1`:`hidden`}>Profile Setting</p>
-      </span> */}
       
      
      {  currentUser.bio?.bannerImage && <div

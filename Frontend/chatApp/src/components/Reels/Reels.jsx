@@ -1,183 +1,195 @@
-import React, { useEffect, useState, useCallback } from 'react'
-import axios from 'axios'
-import { ArrowBigDownIcon, ArrowBigUp } from 'lucide-react'
-import { 
-  ThumbsUp,       // like
-  ThumbsDown,     // dislike
-  MessageCircle,  // comment
-  Info            // description/info
-} from 'lucide-react'
-import VideoPlayer from './VideoSetup/VideoPlayer.jsx'
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import axios from "axios";
+import Logo from "../DashBoard/Logo.jsx";
+import LeftSideBar from "../DashBoard/LeftSideBar.jsx";
+import LeftSideBarUserProfile from "../DashBoard/LeftSideBarUserProfile.jsx";
+import {
+  ArrowBigDownIcon,
+  ArrowBigUp,
+  Share2,
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+  Info,
+} from "lucide-react";
+import VideoPlayer from "./VideoSetup/VideoPlayer.jsx";
 
 function Reels() {
-  const [videoUrl, setVideoUrl] = useState("")
-  const [res, setResponse] = useState([])
-  const [videoNumber, setVideoNumber] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [res, setResponse] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const observer = useRef();
 
-  // Debounce utility to limit fetch frequency on scroll
-  function debounce(fn, ms) {
-    let timer
-    return function (...args) {
-      clearTimeout(timer)
-      timer = setTimeout(() => fn.apply(this, args), ms)
-    }
-  }
-
-  // Method to fetch reels
-  const fetchReels = async () => {
+  //  Fetch API with pagination
+  const fetchReels = useCallback(async () => {
+    if (!hasMore) return;
+    setLoading(true);
     try {
-      setLoading(true)
-      const response = await axios.get("http://localhost:3002/api/v1/video/fetch")
-      if (!response.data) {
-        console.log("response not found")
-        return
-      }
-
-      const newData = response.data.data
-      setResponse((prev) => [...prev, ...newData]) // append new data
-
-      // Set initial video URL if this is the first load
-      if (newData.length > 0 && videoNumber === 0) {
-        setVideoUrl(newData[0].hlsPath)
+      const response = await axios.get(
+        `http://localhost:3002/api/v1/video/fetch?page=${page}&limit=5`
+      );
+      const newData = response.data?.data || [];
+      if (newData.length === 0) {
+        setHasMore(false);
+      } else {
+        setResponse((prev) => [...prev, ...newData]);
       }
     } catch (error) {
-      console.log("something went wrong in fetching video data", error)
+      console.log("Error fetching video data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  }, [page, hasMore]);
 
-  // Initial fetch
+  //  Infinite Scroll logic
+  const lastVideoRef = useCallback(
+    (node) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
   useEffect(() => {
-    fetchReels()
-  }, [])
-
-  // Update current video URL when videoNumber or res changes
-  useEffect(() => {
-    if (res.length > 0 && res[videoNumber]) {
-      setVideoUrl(res[videoNumber].hlsPath)
-    }
-  }, [videoNumber, res])
-
-  // Navigation functions - next and previous video
-  const getNextVideo = () => {
-    if (videoNumber < res.length - 1) {
-      setVideoNumber((prev) => prev + 1)
-    }
-  }
-
-  const getPrevVideo = () => {
-    if (videoNumber > 0) {
-      setVideoNumber((prev) => prev - 1)
-    }
-  }
-
-  const threshold = 24
-
-  // Debounced scroll handler for fetching more videos near bottom
-  const handleScroll = useCallback(
-    debounce(async (e) => {
-      const scrollHeight = e.target.scrollHeight
-      const clientHeight = e.target.clientHeight
-      const scrollTop = e.target.scrollTop
-      const remainingScroll = scrollHeight - (scrollTop + clientHeight)
-      if (remainingScroll < threshold) {
-        await fetchReels()
-      }
-    }, 200),
-    []
-  )
+    fetchReels();
+  }, [fetchReels]);
 
   return (
-    <>
-      <div className="w-full h-full flex justify-center items-center ">
-             
-        <div
-          id="scrollig_window"
-          onScroll={handleScroll}
-          style={{ scrollBehavior: "smooth" }}
-          className="w-[50%] h-[90vh] overflow-y-scroll scrollbar-custom  "
-        >
-          <div
-            id="reelContainer"
-            className="sm:w-[32vw] w-[80vw] max-h-full  rounded-md text-white text-center font-poppins bg-slate-900 bg-opacity-20 shadow-xl  mx-auto"
-          >
-            {loading && res.length === 0 ? (
-              <p className="text-white font-poppins text-xl text-center p-2 m-3">Loading</p>
-            ) : (
-              <div className="w-full rounded-lg bg-blue-950 bg-opacity-15">
-                {res && res.length > 0 ? (
-                  res.map((el, index) => (
-                    <div key={index} className="p-4 my-2 rounded-lg flex gap-1 justify-center bg-slate-900 bg-opacity-65 w-full relative  ">
-                      <div className='absolute bottom-12 z-10 bg-slate-800 px-4 py-2 bg-opacity-25 rounded-xl'>{el.title}</div>
-                      <VideoPlayer src={el?.hlsPath} className='w-[85%]' />
-                     <div className='text-white w-[15%] min-h-full flex flex-col p-1 justify-around  rounded-md bg-gray-800 bg-opacity-40'>
-      <button
-        aria-label="Like"
-        className="flex items-center justify-center p-2 hover:text-green-400 cursor-pointer rounded-full bg-slate-700 hover:transition-all duration-200 ease-linear hover:bg-slate-900  "
-        onClick={() => alert('Liked!')} // replace with your functionality
-      >
-        <ThumbsUp size={20} />
-      </button>
+    <div className="w-full h-screen flex overflow-hidden bg-gradient-to-br from-black via-zinc-900 to-black text-white">
+      {/* Sidebar */}
+      <aside className="hidden lg:flex flex-col w-[18vw] gap-2 max-w-[280px] bg-zinc-950/90 border-r border-white/10 p-4 overflow-y-auto">
+        <Logo />
+        <LeftSideBarUserProfile followers={0} followings={0} />
+        <LeftSideBar />
+      </aside>
 
-      <button
-        aria-label="Dislike"
-        className="flex items-center justify-center p-2 hover:text-red-500 cursor-pointer rounded-full bg-slate-700 hover:transition-all duration-200 ease-linear hover:bg-slate-900 "
-        onClick={() => alert('Disliked!')} // replace with your functionality
-      >
-        <ThumbsDown size={20} />
-      </button>
+      {/* Main Content */}
+      <main className="flex-1 h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide flex justify-center items-center px-2 sm:px-6">
+        <div className="w-full sm:w-[28rem] md:w-[32rem] lg:w-[34rem] xl:w-[36rem] py-6">
+          {loading && res.length === 0 ? (
+            //  Skeleton loader
+            <div className="flex flex-col gap-6">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-full h-[75vh] rounded-xl bg-zinc-800 animate-pulse"
+                ></div>
+              ))}
+            </div>
+          ) : (
+            res.map((el, index) => {
+              const isLast = index === res.length - 1;
+              return (
+                <div
+                  key={index}
+                  ref={isLast ? lastVideoRef : null}
+                  className="snap-start relative w-full min-h-[75vh] mb-12 rounded-2xl overflow-hidden bg-black shadow-xl hover:shadow-2xl transition-all duration-300"
+                >
+                  {/* Video */}
+                  <VideoPlayer
+                    src={el?.hlsPath}
+                    className="w-full h-full object-cover"
+                  />
 
-      <button
-        aria-label="Comment"
-        className="flex items-center justify-center p-2 hover:text-blue-400 cursor-pointer rounded-full bg-slate-700 hover:transition-all duration-200 ease-linear hover:bg-slate-900 "
-        onClick={() => alert('Open comments section')} // replace with your functionality
-      >
-        <MessageCircle size={20} />
-      </button>
-
-      <button
-        aria-label="Description"
-        title={el?.description || "No description available"} // simple tooltip on hover
-        className="flex items-center justify-center p-2 hover:text-yellow-300 cursor-pointer rounded-full bg-slate-700 hover:transition-all duration-200 ease-linear hover:bg-slate-900 "
-        onClick={() => alert(el?.description || "No description available")} // optional popup or modal
-      >
-        <Info size={20} />
-      </button>
-    </div>
+                  {/* Overlay Content */}
+                  <div className="absolute bottom-0 w-full p-4 sm:p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
+                    {/* User Info */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={el?.owner?.profilePic || "/default-avatar.png"}
+                          alt="User"
+                          className="w-10 h-10 rounded-full border border-white/30"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold">
+                            @{el?.owner?.username || "user"}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {el?.owner?.followers || 0} followers
+                          </p>
+                        </div>
+                      </div>
+                      <button className="px-3 py-1.5 text-xs bg-gradient-to-r from-pink-500 to-rose-600 hover:opacity-90 rounded-full transition-all">
+                        Follow
+                      </button>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-white font-poppins text-xl text-center p-2 m-3">No video available</p>
-                )}
-              </div>
-            )}
-          </div>
-          
-        </div>
 
-        <div className="text-xl text-white flex flex-col justify-center items-center ml-4 space-y-2">
-          <button
-            className="hover:border rounded-full p-2 hover:transition-all duration-150 ease-out hover:bg-slate-100 hover:bg-opacity-30 shadow-md disabled:opacity-50"
-            onClick={getPrevVideo}
-            disabled={videoNumber === 0}
-            aria-label="Previous Video"
-          >
-            <ArrowBigUp />
-          </button>
-          <button
-            className="hover:border rounded-full p-2 hover:transition-all duration-150 ease-out hover:bg-slate-100 hover:bg-opacity-30 shadow-md disabled:opacity-50"
-            onClick={getNextVideo}
-            disabled={videoNumber >= res.length - 1}
-            aria-label="Next Video"
-          >
-            <ArrowBigDownIcon />
-          </button>
+                    {/* Caption */}
+                    <h2 className="text-base sm:text-lg font-medium">
+                      {el.title}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-300 mt-1 line-clamp-2">
+                      {el.description || "No description available"}
+                    </p>
+                  </div>
+
+                  {/* Right Side Actions */}
+                  <div className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 flex flex-col gap-6">
+                    {[
+                      { icon: <ThumbsUp size={26} />, label: "Like", count: 1.2 },
+                      {
+                        icon: <ThumbsDown size={26} />,
+                        label: "Dislike",
+                        count: 0.2,
+                      },
+                      {
+                        icon: <MessageCircle size={26} />,
+                        label: "Comment",
+                        count: 320,
+                      },
+                      { icon: <Share2 size={26} />, label: "Share", count: 50 },
+                      {
+                        icon: <Info size={26} />,
+                        label: "Info",
+                        onClick: () =>
+                          alert(el?.description || "No description available"),
+                      },
+                    ].map(({ icon, label, count, onClick }, i) => (
+                      <div
+                        key={i}
+                        className="flex flex-col items-center gap-1 group"
+                      >
+                        <button
+                          aria-label={label}
+                          onClick={onClick || (() => alert(`${label} clicked`))}
+                          className="p-3 rounded-full bg-white/10 backdrop-blur-md shadow-lg transition-all duration-300 ease-out hover:scale-110 hover:bg-white/20"
+                        >
+                          {icon}
+                        </button>
+                        {count !== undefined && (
+                          <span className="text-xs text-gray-300 group-hover:text-white transition-colors">
+                            {count}k
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          )}
+
+          {/* Loading indicator when fetching more */}
+          {loading && res.length > 0 && (
+            <p className="text-center py-6 text-gray-400">Loading more...</p>
+          )}
+          {!hasMore && (
+            <p className="text-center py-6 text-gray-500">No more videos 🎬</p>
+          )}
         </div>
-      </div>
-    </>
-  )
+      </main>
+    </div>
+  );
 }
 
-export default Reels
+export default Reels;

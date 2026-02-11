@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Loader, Reply, ThumbsUp, X } from "lucide-react"
  import { ToastContainer, toast } from 'react-toastify';
 import TweetComment from "./TweetComment";
+import moment from "moment";
 import { Copy, Send, Share2 } from "lucide-react";
 function TweetCard({
   profilePicSrc = "https://picsum.photos/seed/1/200/200",
@@ -14,7 +15,8 @@ function TweetCard({
   content = "This is a sample tweet content.",
   timestamp = "2h ago",
   likes = 0,
-  currentTweetId = "",
+  isLiked = false,
+  currentTweetId ="",
   retweets = 0,
   comments = 0,
   commentLikes=0,
@@ -24,9 +26,10 @@ function TweetCard({
 
   
 }) {
-  const [isLiked, setIsLiked] = useState(false);
+  // const [isLiked, setIsLiked] = useState(false); // is ko dekhna padega
+  const[isTweetLiked,setTweetLike]=useState(isLiked);
   const [isRetweeted, setIsRetweeted] = useState(false);
-  const [likeCount, setLikeCount] = useState(likes);
+  const [likeCount,setLikeCount] = useState(likes);
   const [retweetCount, setRetweetCount] = useState(retweets);
   const [openCommentModel, setOpenCommentModel] = useState(false);
   const [userComment, setUserComment] = useState("");
@@ -40,11 +43,38 @@ function TweetCard({
   const Url = import.meta.env.VITE_API_URL;
   const [tweetPostLoading, setTweetPostLoading] = useState(false);
   const[isOpenShareModel,setIsOpenShareModel]=useState(false);
+// handle tweet like and dislike
 
+const handleToggleTweetLikeAndDislike = async(tweetId)=>{
+  try{
+    const likeResponse = await axios.put(`${Url}/like/toggle_tweet_like/${tweetId}`,null,{withCredentials:true})
+     if(!likeResponse){
+      console.log("error creating at like Response");
+      return;
+     }
+  
+     const response = likeResponse.data.status
+     console.log("like status",response)
+      if(response==="likeAdded"){
+        // alert("tweet liked")
+        setTweetLike(true)
+        setLikeCount((prev) => prev + 1);
+      }
+   else if(response === "likeRemoved"){
+    // alert("tweet like removed")
+     setTweetLike(false);
+     setLikeCount((prev) => prev - 1);
+   }
+  }
+  catch(err){
+  console.log("error creating at toggling tweet like",err)
+  }
+}
   // handle share content 
 const handleClickInsideDiv=(e)=>{
   e.stopPropagation();
 }
+
   // const handleShareContent = (tweetId)=>{
   //   const uri =`${window.location.origin}/tweet/${tweetId}`;
   //    const searchMethod =window.open(`https://wa.me/?text=${encodeURIComponent(uri)}`, "_blank");
@@ -125,9 +155,10 @@ const handleClickInsideDiv=(e)=>{
         }
       );
       if (response) {
-        console.log("response of fetching TWeet:", response.data);
+        console.log("response of fetching Tweet - checking what comment we are getting :", response.data.response);
         setLoading(false);
         setTweetComments(response.data.response);
+
       }
 
       if (!response) console.log("error in feching comment");
@@ -145,15 +176,15 @@ const handleClickInsideDiv=(e)=>{
     }
   };
 
-  const handleLike = (e) => {
-  e.stopPropagation()
-    if (isLiked) {
-      setLikeCount((prev) => prev - 1);
-    } else {
-      setLikeCount((prev) => prev + 1);
-    }
-    setIsLiked(!isLiked);
-  };
+  // const handleLike = (e) => {
+  // e.stopPropagation()
+  //   if (isLiked) {
+  //     setLikeCount((prev) => prev - 1);
+  //   } else {
+  //     setLikeCount((prev) => prev + 1);
+  //   }
+  //   setIsLiked(!isLiked);
+  // };
   
   const handleRetweet = (e) => {
      e.stopPropagation()
@@ -165,11 +196,17 @@ const handleClickInsideDiv=(e)=>{
     setIsRetweeted(!isRetweeted);
   };
 
+  // handle date formatting
+  const formatDate = (date)=>{
+    const date_req = moment(date).fromNow();
+    return date_req;
+  }
   // side effect for aeroApperance
   useEffect(() => {
     handleAeroApperance();
   }, [userComment.length]);
 
+  
   return (
     <motion.div className={`min-w-auto h-auto bg-gradient-to-br from-slate-800/90 to-slate-900/95 backdrop-blur-sm border border-slate-600/50 hover:border-slate-500/70 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 mb-6 p-6 relative group ${className}` }{...props}>
       <ToastContainer/>
@@ -178,7 +215,8 @@ const handleClickInsideDiv=(e)=>{
       
       <div className="flex items-start gap-4 relative z-10">
         {/* Enhanced Profile Picture */}
-        <div className="flex-shrink-0 hover:cursor-pointer transition-transform hover:scale-105" onClick={() => {
+        <div className="flex-shrink-0 hover:cursor-pointer transition-transform hover:scale-105" onClick={(e) => {
+          e.stopPropagation();
           navigate(`/userAdmin/${currentUserId}`)
         }}>
           <div className="relative">
@@ -200,7 +238,7 @@ const handleClickInsideDiv=(e)=>{
               <h3 className="font-bold text-white hover:text-cyan-400 transition-colors cursor-pointer font-poppins">{username}</h3>
               <span className="text-slate-400 text-sm font-serif">@{handle}</span>
               <span className="text-slate-500 text-xs">•</span>
-              <span className="text-slate-500 text-xs font-montserrat">{timestamp}</span>
+              <span className="text-slate-500 text-xs font-montserrat">{formatDate(timestamp)}</span>
             </div>
             
             {/* More options button */}
@@ -280,27 +318,36 @@ const handleClickInsideDiv=(e)=>{
             </button>
 
             <button
-              className={`group flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 ${
-                isLiked ? "text-rose-400 bg-rose-400/10" : "text-slate-400 hover:text-rose-400 hover:bg-rose-400/10"
-              }`}
-              onClick={handleLike}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className={`h-5 w-5 group-hover:scale-110 transition-transform duration-200 ${isLiked ? 'fill-current' : ''}`}
-                fill={isLiked ? "currentColor" : "none"}
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-              <span className="text-sm font-medium">{likeCount}</span>
-            </button>
+  className={`group flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200  ${
+    isTweetLiked
+      ? "text-rose-400 bg-rose-400/10 "
+      : "text-slate-400 hover:text-rose-400 hover:bg-rose-400/10"
+  }`}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleToggleTweetLikeAndDislike(currentTweetId);
+  }}
+>
+  <motion.svg
+  initial={false}
+  animate={isTweetLiked ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+  transition={{ duration: 0.3 }}
+  xmlns="http://www.w3.org/2000/svg"
+  className={`h-5 w-5 ${isTweetLiked ? "fill-current text-rose-400" : "text-slate-400 hover:text-rose-400"}`}
+  fill={isTweetLiked ? "currentColor" : "none"}
+  viewBox="0 0 24 24"
+  stroke="currentColor"
+>
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    strokeWidth={2}
+    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+  />
+</motion.svg>
+
+  <span className="text-sm font-medium font-poppins">{likeCount}</span>
+</button>
 
             <button className="group flex items-center gap-2 px-3 py-2 rounded-full text-slate-400 hover:text-blue-400 hover:bg-blue-400/10 transition-all duration-200"
             onClick={(e)=>{
@@ -310,7 +357,7 @@ const handleClickInsideDiv=(e)=>{
             }}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 group-hover:-translate-y-1 transition-transform duration-200 "
+                className="h-5 w-5 group-hover:-translate-y-1 transition-transform duration-200  "
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -436,7 +483,7 @@ const handleClickInsideDiv=(e)=>{
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <TweetComment commentContent={comment.content} />
+                  <TweetComment profilePic={comment.commentOwner.profilePicture}  commentContent={comment.content} username={comment.commentOwner.userName} />
                 </motion.div>
               ))}
             </div>

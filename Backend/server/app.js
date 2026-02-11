@@ -12,6 +12,7 @@ import tweetRoute from "../Routes/tweet.Route.js"
 import commentRoute from "../Routes/comment.route.js"
 import notificationRoute from "../Routes/notification.routes.js"
 import friendRequestRoute from "../Routes/friendRequest.route.js"
+import likeRoute from "../Routes/like.route.js"
 app.use(express.urlencoded({
     extended:true,
     limit:"16kb"
@@ -33,6 +34,7 @@ app.use("/api/v1/tweet",tweetRoute)
 app.use("/api/v1/comment", commentRoute)
 app.use("/api/v1/notification",notificationRoute)
 app.use("/api/v1/friend_request",friendRequestRoute)
+app.use("/api/v1/like",likeRoute)
 
 // habdling errors for frontend
 app.use((req,res)=>{

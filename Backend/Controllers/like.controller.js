@@ -1,10 +1,10 @@
-import { AsyncHandler } from "../Utils/AsyncHandler";
-import { ApiError } from "../Utils/ApiError";
+import { AsyncHandler } from "../Utils/AsyncHandler.js";
+import { ApiError } from "../Utils/ApiError.js";
 import mongoose from "mongoose";
-import { ApiResponse } from "../Utils/ApiResponse";
-import { Like } from "../Models/likes.model";
-import { Tweet } from "../Models/tweet.model";
-import { Comment } from "../Models/comment.model";
+import { ApiResponse } from "../Utils/ApiResponse.js";
+import { Like } from "../Models/likes.model.js";
+import { Tweet } from "../Models/tweet.model.js";
+import { Comment } from "../Models/comment.model.js";
 
 const isTweetLiked =  async(req,tweetId)=>{
   const loginId = req.user?._id;
@@ -16,8 +16,8 @@ const isTweetLiked =  async(req,tweetId)=>{
   return true;
 }
 
-// check is comment like
-const isCommentLiked =  async(req)=>{
+// utility function check is comment like
+const isCommentLiked =  async(req,commentId)=>{
     const loginId = req.user._id;
     const currentLike = await Like.findOne({
       owner:loginId,
@@ -27,7 +27,7 @@ const isCommentLiked =  async(req)=>{
     return true;
   }
 
-
+//  method to add like and remove like from the tweet
 
 const toggleTweetLike = AsyncHandler(async(req,res)=>{
      const userId = req.user?._id;
@@ -43,7 +43,7 @@ const toggleTweetLike = AsyncHandler(async(req,res)=>{
             owner:userId
         })
         if(!like) throw new ApiError(500,"something went wrong in Like tweet");
-        return res.status(200).json( new ApiResponse(200, like ,"tweet liked successfully"));
+        return res.status(200).json({data:like, message:"tweet like successfully" , status:"likeAdded"});
      }
      else if(isContentLiked) {
         // delete existing like 
@@ -52,7 +52,7 @@ const toggleTweetLike = AsyncHandler(async(req,res)=>{
             tweets:tweetId
         });
         if(!deleteLike) throw new ApiError(500,"sosmething went wrong in remove like from video");
-        return res.status(200).json(new ApiResponse(200,deleteLike,"like removed successFully"));
+         return res.status(200).json({data:deleteLike, message:"tweet like removed  successfully" , status:"likeRemoved"});
      }
        
 })
@@ -103,11 +103,10 @@ const IsCurrentTweetOrCommentLiked = AsyncHandler(async (req, res) => {
     owner: userId,
     [queryKey]: new mongoose.Types.ObjectId(id),
   });
-
   return res.status(200).json({ liked: Boolean(likeStatus) });
 });
  //TODO: get lists of all liked comments
  // TODO: get list of all liked Tweets
 export {
-    toggleTweetLike ,toggleCommentLike
+    toggleTweetLike ,toggleCommentLike, IsCurrentTweetOrCommentLiked
 }

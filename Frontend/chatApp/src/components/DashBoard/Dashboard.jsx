@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import {formatDistanceToNow} from "date-fns"
 import DashboardNavbar from "./DashboardNavbar";
 import LeftSideBar from "./LeftSideBar";
@@ -26,8 +26,8 @@ function Dashboard() {
   const data = ["hello", "world", "this", "is", "a", "test"];
  const [follower,setFollower] = useState({followerCount:0,followingCount:0});
 //  frtching data of all new unread chat messages
- const user_Id = useSelector((state) => state.auth.userData._id)
-console.log("check_user_id", user_Id)
+ const user_Id = useSelector((state) => state.auth.userData?._id)
+console.log("check_user_id", user_Id);
 const navigate = useNavigate();
   const getChatMessage = async()=>{
     try{
@@ -80,16 +80,33 @@ const navigate = useNavigate();
     getChatMessage();
   }, []);
    console.log(follower)
- const  newDate = (currentDate)=>{
-   const updatedDate = new Date(currentDate);
-   const timeAgo =formatDistanceToNow(updatedDate, { addSuffix: true });
-   return timeAgo;
- }
+  //  handle like status of the user
+  // const isContentLiked = async(tweetId)=>{
+  //   try{
+  //   const isLiked  =await axios.get(`${Url}/like/isContentLiked/tweet/${tweetId}`,{withCredentials:true});
+     
+  //    if( isLiked.data.liked === false){
+  //     return false;
+  //    }
+  //    else if(isLiked.data.liked === true){
+  //     return true;
+  //    }
+  //   }
+  //   catch(err){
+  //     console.log("error occured in checking like status", err)
+  //   }
+  // }
+//  const  newDate = (currentDate)=>{
+//    const updatedDate = new Date(currentDate);
+//    const timeAgo =formatDistanceToNow(updatedDate, { addSuffix: true });
+//    return timeAgo;
+//  } ------> will done on tweetCard page itself 
 
 //  useEffect  ckeck is the tweet kiked or not
 // useEffect(()=>{
 //   const isTweetLiked =
 // },[])
+// if(!_id)
   return (
     <div className=" grid  sm:grid-cols-12   gap-1 min-h-full min-w-full overflow-hidden relative">
       {/* <ToastContainer/> */}
@@ -121,6 +138,7 @@ const navigate = useNavigate();
             tweets.map((item, index) => (
               <TweetCard
                 currentTweetId={item?._id}
+                isLiked={item?.isLikedByUser}
                 currentUserId={item?.UserData[0]?._id}
                 key={index}
                 profilePicSrc={item.UserData[0].profilePicture}
@@ -128,8 +146,8 @@ const navigate = useNavigate();
                 imageContent={item.imageUrl}
                 username={item.UserData[0].fullName}
                  handle={item.UserData[0].userName}
-                 likes={""}
-                 timestamp={newDate(item.UserData[0].updatedAt)}
+                 likes={item?.likeCount}
+                 timestamp={item.UserData[0].createdAt}
                   className={"cursor-pointer"}
                  comments={""}
                  retweets={""}
