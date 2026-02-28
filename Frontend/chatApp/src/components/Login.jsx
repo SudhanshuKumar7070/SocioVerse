@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
+import { setTokens } from "../store/tokenSlice";
 import SpinnerWithText from "./LoadingSpinner";
 import axios from "axios";
 import Input from "./Input";
@@ -36,6 +36,9 @@ function Login() {
           login({
             userData: response.data.response.user,
             token: response.data.response.RefreshToken,
+          }),
+          setTokens({
+            refreshToken: response.data.response.RefreshToken,
           })
         );
       }

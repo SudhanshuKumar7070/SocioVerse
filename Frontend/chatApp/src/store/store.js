@@ -19,10 +19,10 @@ const persistedConvoReducer =  persistReducer(convoPersistConfig,convoReducer)
 const store = configureStore({
   reducer: {
     authToken:persistedTokenReducer,
-     auth:authReducer,
+    auth:authReducer,
     conversation: persistedConvoReducer,
-     userUrl:userUrlReducer,
-     tweetTextContent:tweetTextContentReducer
+    userUrl:userUrlReducer,
+    tweetTextContent:tweetTextContentReducer
   },
   middleware:(getDefaultMiddleware)=> getDefaultMiddleware({
     serializableCheck: false,

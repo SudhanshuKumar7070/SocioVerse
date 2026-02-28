@@ -213,7 +213,7 @@ const navigate = useNavigate();
               <TweetNotification
                 key={index}
                 profilePicSrc={`https://picsum.photos/seed/${index}/200/200`}
-                notificationReceived={true}
+                notificationReceived={false}
               />
             ))}
             {/* <ChatNotification/> */}

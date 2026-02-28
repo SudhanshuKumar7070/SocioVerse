@@ -3,14 +3,14 @@ import { ApiError } from "../Utils/ApiError.js";
 import { AsyncHandler } from "../Utils/AsyncHandler.js";
 import { redisClient } from "../server/redis.server.js";
 const   RATE_LIMIT_DURATION_IN_SECONDS = 60;
- const NUMBER_OF_REQUESTS_ALLOWED = 3;
+ const NUMBER_OF_REQUESTS_ALLOWED = 10;
 
 const apiRateLimiter = AsyncHandler(async(req,res,next)=>{
-   const userId = req.users?._id;
-   if(!userId) throw new ApiError( 402,"invalid user , ! need to register first");
+   const userId = req.user?._id;
+   if(!userId) throw new ApiError( 402,"invalid user!, need to login first");
   const currentTime = Date.now();
     const result = await redisClient.hgetall(`user_id:${userId}`);
-     if(Object.keys(result).length() === 0){
+     if(Object.keys(result).length === 0){
         await redisClient.hset(`user_id:${userId}`,{
           createdAt: currentTime,
           count:1
@@ -29,7 +29,7 @@ const apiRateLimiter = AsyncHandler(async(req,res,next)=>{
              throw new ApiError(429,"rate limit exceeded");
            }
       }else{
-         await redisClient.hset(`otpRL:${phoneNumber}`,{
+         await redisClient.hset(`user_id:${userId}`,{
                     createdAt:currentTime,
                     count:1
       })
