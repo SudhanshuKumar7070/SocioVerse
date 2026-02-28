@@ -54,8 +54,9 @@ function ChatingSpace() {
   }, [convoId]);
   return (
     // className={`${styles.container} h-[100%]  w-[100%] flex justify-center items-start
-    <div className="  w-full h-full px-1 py-1 flex justify-center items-start">
-      <div className="left_Container md:min-w-[31%]  bg-slate-900 h-full bg-opacity-50 shadow-lg rounded-lg px-2 py-3 overflow-y-scroll scrollbar-custom  scroll-smooth relative ">
+    <div className="w-full h-[calc(100vh-80px)] md:h-full px-1 py-1 flex flex-col md:flex-row justify-center items-start relative pb-16 md:pb-0">
+      {/* Contact List / Left Panel (Hidden on mobile if a conversation is open, unless we add routing logic. For now, max width on mobile) */}
+      <div className={`left_Container w-full md:w-[31%] md:min-w-[31%] bg-slate-900 h-[40%] md:h-full bg-opacity-50 shadow-lg md:rounded-lg px-2 py-3 overflow-y-scroll scrollbar-custom scroll-smooth relative ${convoId ? 'hidden md:block' : 'block'}`}>
         <div id="searchBar " className="w-full sticky top-[0%] z-10 ">
           <SearchBar width="min-w-full" ref={searchRef}  onChange={(e)=> setSearchVal(e.target.value)}/>
         </div>
@@ -68,7 +69,7 @@ function ChatingSpace() {
         </h1> 
          <PeopleYouMayKnow propClass={"h-[30%]"} /> 
       </div>
-      <div className="right_Container md:min-w-[67%]  h-full">
+      <div className={`right_Container w-full md:w-[67%] md:min-w-[67%] h-full flex-grow ${!convoId ? 'hidden md:block' : 'block'}`}>
         <Outlet/>
         {/* <ChatArea propClass={"w-[100%] h-full "} /> */}
       </div>

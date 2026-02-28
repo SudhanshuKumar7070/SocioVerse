@@ -9,16 +9,16 @@ const LandingPage = () => {
       <header className="flex flex-col md:flex-row items-center justify-between w-full max-w-6xl py-16 gap-10">
         
         {/* Text Content */}
-        <div className="md:w-1/2 text-center md:text-left space-y-6">
-          <h1 className="text-4xl md:text-5xl font-bold font-poppins text-blue-950 leading-tight">
+        <div className="md:w-1/2 text-center md:text-left space-y-4 md:space-y-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-poppins text-blue-950 leading-tight">
             Connect Instantly,<br className="hidden md:inline" /> Chat Effortlessly
           </h1>
-          <p className="text-lg text-neutral-300 font-poppins">
+          <p className="text-base md:text-lg text-neutral-300 font-poppins px-4 md:px-0">
             Secure, real-time messaging at your fingertips. Start your journey today!
           </p>
           <Link
             to="/register"
-            className="inline-block bg-blue-600 text-white font-montserrat text-lg font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition"
+            className="inline-block bg-blue-600 text-white font-montserrat text-base md:text-lg font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 transition"
           >
             Start Exploring
           </Link>

@@ -33,28 +33,30 @@ function CreatePostComponent({ variableClassName }) {
    }
   
   return (
-    <div  className={`grid grid-cols-12 gap-4 p-4 bg-white rounded-2xl shadow-2xl font-montserrat   ${variableClassName}`}>
+    <div className={`flex flex-col sm:flex-row items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white rounded-2xl shadow-lg border border-slate-100/50 font-montserrat w-full ${variableClassName}`}>
       
-      {/* Profile Picture */}
-      <div className="col-span-2 h-[3.5rem] w-[3.5rem] rounded-full border-2 border-white overflow-hidden shadow-md bg-gradient-to-br from-slate-800 to-slate-700">
-        <img
-          src={profilePic}
-          alt="profile"
-          className="h-full w-full object-cover"
+      <div className="flex w-full items-center gap-3 flex-1">
+        {/* Profile Picture */}
+        <div className="shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-full border-2 border-white overflow-hidden shadow-sm bg-gradient-to-br from-slate-800 to-slate-700">
+          <img src={profilePic} alt="profile" className="h-full w-full object-cover" />
+        </div>
+
+        {/* Input Field */}
+        <input
+          type="text"
+          className="flex-1 w-full bg-slate-50 border border-slate-200/60 text-slate-700 placeholder-slate-400 rounded-xl px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition duration-200"
+          placeholder="What's on your mind?"
+          value={postText}
+          onChange={handlePostText}
         />
       </div>
 
-      {/* Input Field */}
-      <input
-        type="text"
-        className="col-span-8 h-full w-full bg-slate-100 text-slate-700 placeholder-slate-500 rounded-xl px-4 py-2 text-lg focus:outline-none focus:ring-2 focus:ring-sky-400 transition duration-200 "
-        placeholder="What's on your mind?"
-        value={postText}
-        onChange={handlePostText}
-      />
-
       {/* Create Post Button */}
-      <button type="button" onClick={handlePostButtonClick} className="col-span-2 font-montserrat text-md h-12 px-4 rounded-xl bg-gradient-to-br from-sky-500 to-sky-600 text-white font-semibold shadow-md transition-all duration-300 ease-in-out hover:scale-[1.05] hover:shadow-lg hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-sky-300">
+      <button 
+        type="button" 
+        onClick={handlePostButtonClick} 
+        className="w-full sm:w-auto shrink-0 font-montserrat text-sm sm:text-base px-6 py-2.5 sm:py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow"
+      >
         Create Post
       </button>
     </div>

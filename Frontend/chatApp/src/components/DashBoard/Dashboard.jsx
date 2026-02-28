@@ -2,6 +2,7 @@ import  { useEffect } from "react";
 import {formatDistanceToNow} from "date-fns"
 import DashboardNavbar from "./DashboardNavbar";
 import LeftSideBar from "./LeftSideBar";
+import MobileBottomNav from "./MobileBottomNav"; // Added Mobile Navbar
 import TweetCard from "../Tweets/TweetCard.jsx";
 import { useState } from "react";
 import axios from "axios";
@@ -108,10 +109,10 @@ const navigate = useNavigate();
 // },[])
 // if(!_id)
   return (
-    <div className=" grid  sm:grid-cols-12   gap-1 min-h-full min-w-full overflow-hidden relative">
+    <div className="flex flex-col md:grid md:grid-cols-12 gap-1 min-h-[100dvh] w-full overflow-x-hidden relative pb-16 md:pb-0">
       {/* <ToastContainer/> */}
-      {/*  left sidebar */}
-      <div className=" sm:col-span-2  sm:block shadow-md px-2 py-2  bg-opacity-30 ">
+      {/*  left sidebar (hidden on mobile, visible on desktop) */}
+      <div className="hidden md:block md:col-span-2 shadow-md px-2 py-2 bg-opacity-30">
         <Logo />
         <LeftSideBarUserProfile followers = {follower.followerCount}  followings ={follower.followingCount} />
         <div className="py-2 my-2">
@@ -119,15 +120,15 @@ const navigate = useNavigate();
         </div>
       </div>
 
-      {/* centerContent */}
-      <div className=" sm:col-span-7  relative shadow-sm  rounded-2xl px-3 py-4 w-full h-full overflow-y-scroll scrollbar-custom overflow-x-hidden ">
+      {/* centerContent (full width on mobile, 7 cols on desktop) */}
+      <div className="w-full md:col-span-7 relative shadow-sm rounded-2xl px-3 py-4 h-full overflow-y-scroll scrollbar-custom overflow-x-hidden">
         <ToastContainer/>
         <div id="createPost" className="flex justify-center items-center  ">
           <CreatePostComponent variableClassName={"w-full"} />
         </div>
         <div
           id="tweets_area"
-          className="h-auto sm:min-w-full shadow-lg  bg-blue-950/15 my-3 rounded-2xl "
+          className="h-auto w-full max-w-full shadow-lg bg-blue-950/15 my-3 rounded-2xl "
         >
           <DashboardNavbar />
           <div className=" mx-auto sm:h-full sm:max-w-[70%] grid  md:grid-cols-1 gap-6 px-4 py-3 ">
@@ -161,11 +162,11 @@ const navigate = useNavigate();
           {/* <TweetCard/> */}
         </div>
       </div>
-      {/* rightSideBar */}
-      <div className=" flex flex-col p-4  bg-inherit sm:col-span-3  rounded-2xl bg-opacity-15 shadow-md gap-4 overflow-y-scroll scroll-smooth scrollbar-custom ">
+      {/* rightSideBar (hidden on mobile, visible on large screens to avoid crowding) */}
+      <div className="hidden lg:flex flex-col p-4 bg-inherit lg:col-span-3 rounded-2xl bg-opacity-15 shadow-md gap-4 overflow-y-scroll scroll-smooth scrollbar-custom">
         <div
           id="trending_topics"
-          className="sm:min-w-full sm:h-[35vh] bg-blue-700 border border-slate-700 rounded-2xl shadow-lg bg-opacity-15 p-2"
+          className="w-full sm:h-[35vh] bg-blue-700 border border-slate-700 rounded-2xl shadow-lg bg-opacity-15 p-2"
         >
           <h1 className="text-sky-500 font-semibold text-sm font-poppins  px-2 py-4">
             Trending Topics
@@ -180,7 +181,7 @@ const navigate = useNavigate();
 
         <div
           id="chatNotification"
-          className="sm:min-w-full sm:h-[35vh] border border-slate-700 rounded-xl shadow-lg bg-opacity-15 bg-blue-950 p-2 overflow-y-clip"
+          className="w-full sm:h-[35vh] border border-slate-700 rounded-xl shadow-lg bg-opacity-15 bg-blue-950 p-2 overflow-y-clip"
         >
           <h1 className="text-sky-300 font-poppins font-semibold text-sm px-2 py-4 ">
             Chat Notifications
@@ -202,7 +203,7 @@ const navigate = useNavigate();
 
         <div
           id="tweetNotification"
-          className="sm:min-w-full  sm:h-[35vh] border border-slate-700 bg-blue-950  rounded-xl shadow-lg bg-opacity-15 p-2 overflow-y-clip "
+          className="w-full sm:h-[35vh] border border-slate-700 bg-blue-950 rounded-xl shadow-lg bg-opacity-15 p-2 overflow-y-clip "
         >
           <h1 className="text-sky-300 font-semibold text-md font-poppins   px-2 py-4">
             Tweet Notifications
@@ -222,11 +223,14 @@ const navigate = useNavigate();
 
         <div
           id="settings"
-          className="sm:min-w-full sm:h-[35vh] rounded-xl shadow-xl bg-opacity-30 p-2 border border-slate-700 "
+          className="w-full sm:h-[35vh] rounded-xl shadow-xl bg-opacity-30 p-2 border border-slate-700 "
         >
           <SettingsComponent />
         </div>
       </div>
+      
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav />
     </div>
   );
 }

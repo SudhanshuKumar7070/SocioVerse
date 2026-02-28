@@ -31,26 +31,26 @@ const MessageInput = ({PropClassName}) => {
    
   
   return (
-    <div className="flex justify-around items-center  sm:min-w-[80%] bg-slate-900 rounded-lg bg-opacity-80 shadow-xl hover:border hover:border-white transition-all  duration-300  ease-in ">
-           <span id="currUserImag" className="flex justify-center items-center p-1" >
-            <img src={userImageUrl} className="h-14 w-14 rounded-full shadow-lg"  alt="user1" />
+    <div className="flex justify-between items-center w-full sm:w-[90%] md:w-[80%] mx-auto bg-slate-900 rounded-lg bg-opacity-80 shadow-xl border border-transparent hover:border-white transition-all duration-300 ease-in p-2 mt-auto mb-2 shrink-0">
+           <span id="currUserImag" className="flex justify-center items-center shrink-0" >
+            <img src={userImageUrl} className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-full shadow-lg"  alt="user1" />
            </span>
-           <span className="flex justify-center items-center">
+           <span className="flex justify-center items-center flex-grow mx-2 space-x-2">
            <Input
-            placeholder="this is component for checking"
+            placeholder="Type your message..."
             value={textMessage}
            
             type="text"
             onChange={(e)=>{
               setMessage(e.target.value)
             }}
-            className={`${PropClassName} ` }
+            className={`w-full ${PropClassName} `}
             
           />
           {/* button to send message */}
           <button
             onClick={handleSendMessage}
-            className={`bg-sky-300 bg-opacity-90 h-14 w-14 py-[10px] rounded-full  hover:bg-sky-500 hover:text-white flex justify-center items-center `}
+            className={`bg-sky-300 bg-opacity-90 h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 rounded-full hover:bg-sky-500 hover:text-white flex justify-center items-center `}
             id=""
           >
             <SendHorizontal size={18} stroke="black"/>

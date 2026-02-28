@@ -113,14 +113,14 @@ function Notifications() {
     fetchData();
   }, [ refreshNotificationFetch]);
   return (
-    <div className="h-[85vh] w-[65vw] mx-auto rounded-2xl bg-gradient-to-r from-black via-blue-950 to-black shadow-2xl p-6 flex flex-col gap-6">
+    <div className="h-[100dvh] sm:h-[85vh] w-full sm:w-[90vw] md:w-[75vw] lg:w-[65vw] mx-auto sm:mt-8 sm:rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 pb-20 sm:pb-6">
       {/* Heading */}
-      <h1 className="text-3xl text-blue-300 font-bold font-montserrat">
+      <h1 className="text-2xl sm:text-3xl text-cyan-400 font-extrabold font-montserrat tracking-tight">
         Notifications
       </h1>
 
       {/* Tabs */}
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
         {[
           { tab: "all", service: "all" },
           { tab: "chat", service: "chatMessage" },
@@ -130,10 +130,10 @@ function Notifications() {
           <button
             key={tabs.tab}
             onClick={() => setActiveTab(tabs)}
-            className={`px-4 py-2 rounded-full font-poppins text-sm shadow-md transition-all ${
+            className={`whitespace-nowrap shrink-0 px-4 py-2 rounded-full font-poppins text-xs sm:text-sm font-medium shadow-md transition-all duration-300 ${
               activeTab?.tab === tabs.tab
-                ? "bg-blue-600 text-white"
-                : "bg-blue-950 text-blue-300"
+                ? "bg-cyan-500 text-slate-900 shadow-cyan-500/20"
+                : "bg-slate-800 text-slate-400 hover:text-cyan-400 border border-slate-700 hover:border-cyan-500/50"
             }`}
           >
             {tabs.tab.charAt(0).toUpperCase() + tabs.tab.slice(1)}
@@ -142,56 +142,50 @@ function Notifications() {
       </div>
 
       {/* Notification List */}
-      <div className="flex flex-col gap-4 overflow-y-auto max-h-[65vh] scrollbar-custom">
+      <div className="flex flex-col gap-3 overflow-y-auto flex-1 scrollbar-custom pr-1 sm:pr-2">
         {filteredNotificationData.length > 0 ? (
           filteredNotificationData.map((notif, index) => (
             <div
               key={index}
-              className={`flex items-center gap-4 p-4 rounded-lg shadow-lg bg-blue-950 bg-opacity-30 transition hover:bg-blue-900 ${
-                notif.isRead ? "opacity-70" : "opacity-100"
+              className={`flex items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl shadow-lg bg-slate-800/60 border border-slate-700/50 transition-all duration-300 hover:bg-slate-800/80 hover:border-slate-600 ${
+                notif.isRead ? "opacity-60 grayscale-[30%]" : "opacity-100"
               }`}
             >
-              <div>{getIcon(notif.service)}</div>
-              <div className="flex flex-col w-full">
-                <span className=" flex justify-between items-center">
-                  {" "}
-                  <p className="text-blue-300 font-semibold font-montserrat">
+              <div className="mt-1 sm:mt-0 p-2 sm:p-3 bg-slate-700/30 rounded-full shrink-0">{getIcon(notif.service)}</div>
+              <div className="flex flex-col w-full min-w-0">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4 w-full">
+                  <p className="text-slate-200 font-medium font-poppins text-sm sm:text-base leading-snug break-words">
                     {notif.content}
-                  </p>{" "}
-                  {notif.service === "friendRequest" ? (
-                    <span className="p-2 ">
+                  </p>
+                  
+                  {notif.service === "friendRequest" && (
+                    <div className="flex items-center gap-2 shrink-0 mt-2 sm:mt-0">
                       <button
-                        className="font-montserrat px-2 py-2 rounded-xl shadow-lg bg-slate-900 text-blue-300 font-semibold hover:transition-all duration-300 ease-in   hover:text-blue-500  hover:scale-105"
+                        className="font-poppins text-xs sm:text-sm px-4 py-2 rounded-lg shadow-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold hover:bg-emerald-500 hover:text-white transition-all duration-200"
                         onClick={async() => {
-                          const data = await  acceptFriendRequest(notif?.friendRequestId);
-            
-                            const readResponse = await updateIsReadNotification(notif?._id);
-                             if(readResponse) setRefreshNotificationFetch(prev => !prev);
-                             if (data) setRefreshNotificationFetch(prev => !prev);
-                         
+                          const data = await acceptFriendRequest(notif?.friendRequestId);
+                          const readResponse = await updateIsReadNotification(notif?._id);
+                          if(readResponse) setRefreshNotificationFetch(prev => !prev);
+                          if (data) setRefreshNotificationFetch(prev => !prev);
                         }}
                       >
                         Accept
-                      </button>{" "}
-                      <button className=" font-montserrat px-2 py-2  rounded-xl shadow-lg bg-slate-900  text-blue-500 font-semibold hover:transition-all duration-300 ease-linear hover:scale-105 hover:text-blue-300" 
-                      onClick={async()=>{
-                              
-                             const rejectResponse = await rejectFriendRequest(notif?.friendRequestId);
-              
-                             if(rejectResponse) setRefreshNotificationFetch(prev => !prev);
-                             const readResponse = await updateIsReadNotification(notif?._id);
-                             if(readResponse) setRefreshNotificationFetch(prev => !prev);
-                      }}
+                      </button>
+                      <button 
+                        className="font-poppins text-xs sm:text-sm px-4 py-2 rounded-lg shadow-md bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold hover:bg-rose-500 hover:text-white transition-all duration-200" 
+                        onClick={async()=>{
+                           const rejectResponse = await rejectFriendRequest(notif?.friendRequestId);
+                           if(rejectResponse) setRefreshNotificationFetch(prev => !prev);
+                           const readResponse = await updateIsReadNotification(notif?._id);
+                           if(readResponse) setRefreshNotificationFetch(prev => !prev);
+                        }}
                       >
-                        {" "}
                         Reject
-                      </button>{" "}
-                    </span>
-                  ) : (
-                    ""
+                      </button>
+                    </div>
                   )}
-                </span>
-                <span className="text-slate-400 text-xs">
+                </div>
+                <span className="text-slate-500 text-xs mt-1.5 font-montserrat">
                   {notif.createdAt}
                 </span>
               </div>

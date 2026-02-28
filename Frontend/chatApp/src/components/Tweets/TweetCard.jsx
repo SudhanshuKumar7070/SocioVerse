@@ -208,7 +208,7 @@ const handleClickInsideDiv=(e)=>{
 
   
   return (
-    <motion.div className={`min-w-auto h-auto bg-gradient-to-br from-slate-800/90 to-slate-900/95 backdrop-blur-sm border border-slate-600/50 hover:border-slate-500/70 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 mb-6 p-6 relative group ${className}` }{...props}>
+    <motion.div className={`w-full bg-gradient-to-br from-slate-800/90 to-slate-900/95 backdrop-blur-sm border border-slate-600/50 hover:border-slate-500/70 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 mb-6 p-4 sm:p-6 relative group ${className}` }{...props}>
       <ToastContainer/>
       {/* Subtle hover glow */}
       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 to-purple-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -231,14 +231,14 @@ const handleClickInsideDiv=(e)=>{
         </div>
 
         {/* Tweet Content */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {/* Enhanced User Info */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-white hover:text-cyan-400 transition-colors cursor-pointer font-poppins">{username}</h3>
-              <span className="text-slate-400 text-sm font-serif">@{handle}</span>
-              <span className="text-slate-500 text-xs">•</span>
-              <span className="text-slate-500 text-xs font-montserrat">{formatDate(timestamp)}</span>
+          <div className="flex items-center justify-between mb-3 min-w-0">
+            <div className="flex items-center gap-2 truncate flex-wrap">
+              <h3 className="font-bold text-white hover:text-cyan-400 transition-colors cursor-pointer font-poppins truncate max-w-[150px] sm:max-w-[200px]">{username}</h3>
+              <span className="text-slate-400 text-sm font-serif truncate max-w-[100px] sm:max-w-[150px]">@{handle}</span>
+              <span className="text-slate-500 text-xs shrink-0">•</span>
+              <span className="text-slate-500 text-xs font-montserrat shrink-0">{formatDate(timestamp)}</span>
             </div>
             
             {/* More options button */}
@@ -258,11 +258,11 @@ const handleClickInsideDiv=(e)=>{
                 <img className="rounded-xl w-full max-h-80 object-cover hover:scale-105 transition-transform duration-300" src={imageContent} />
               </div>
             )}
-            <p className="text-slate-100 font-medium leading-relaxed font-poppins mt-10">{content}</p>
+            <p className="text-slate-100 font-medium leading-relaxed font-poppins mt-4 break-words whitespace-pre-wrap">{content}</p>
           </div>
 
           {/* Enhanced Tweet Actions */}
-          <div className="flex justify-between items-center max-w-md relative">
+          <div className="flex justify-between items-center w-full sm:max-w-md relative mt-2 gap-1 sm:gap-2 overflow-x-auto scrollbar-hide">
             <button
               className={`group flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-200 ${
                 openCommentModel
@@ -428,7 +428,7 @@ const handleClickInsideDiv=(e)=>{
         transition={{ duration: 0.2, ease: "easeOut" }}
         className={
           openCommentModel
-            ? `mt-4 h-[45vh] w-full font-montserrat rounded-xl bg-slate-900/95 backdrop-blur-sm border border-slate-600/50 shadow-2xl px-4 py-4 flex flex-col text-white overflow-hidden z-20`
+            ? `mt-4 h-[50vh] sm:h-[45vh] w-full font-montserrat rounded-xl bg-slate-900/95 backdrop-blur-sm border border-slate-600/50 shadow-2xl px-2 sm:px-4 py-4 flex flex-col text-white overflow-hidden z-20`
             : `hidden`
         }
       >

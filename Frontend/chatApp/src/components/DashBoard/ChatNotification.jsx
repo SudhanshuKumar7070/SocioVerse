@@ -23,13 +23,13 @@ function ChatNotification({ profilePicSrc, notificationReceived,content,notifica
   }, [notificationReceived]);
 
   return (
-  <div className={ isSeen?`hidden`:`flex items-center gap-3 p-3 rounded-xl shadow-md bg-white border border-slate-200 font-montserrat transition-all duration-300 cursor-pointer`} onClick={()=>{
+  <div className={ isSeen?`hidden`:`flex items-center gap-3 p-3 rounded-xl shadow-md bg-slate-800/60 hover:bg-slate-800/80 border border-slate-700/50 font-montserrat transition-all duration-300 cursor-pointer`} onClick={()=>{
   handeIsMessageRead(notificationId) ;
   navigate(`/center_area/${convoID}`)
   }}>
       
       {/* Profile Picture */}
-      <div className="h-10 w-10 rounded-full border-2 border-white overflow-hidden shadow-md bg-gradient-to-br from-slate-800 to-slate-700">
+      <div className="h-10 w-10 shrink-0 rounded-full border-2 border-slate-700 overflow-hidden shadow-md bg-gradient-to-br from-slate-800 to-slate-700">
         <img
           src={profilePicSrc}
           alt="profile"
@@ -38,18 +38,19 @@ function ChatNotification({ profilePicSrc, notificationReceived,content,notifica
       </div>
 
       {/* Message Info */}
-      <div className="relative w-full">
-        <p className="text-sm text-slate-700 font-semibold font-montserrat">{content}</p>
+      <div className="relative w-full min-w-0 pr-4">
+        <p className="text-sm text-slate-200 font-semibold font-montserrat truncate">{content}</p>
         {!isSeen && (
-          <span className="absolute top-0 right-0 h-3 w-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></span>
+          <span className="absolute top-1 right-0 h-2.5 w-2.5 bg-emerald-500 border-2 border-slate-800 rounded-full shadow-sm"></span>
         )}
       </div>
 
       {/* Mark as Seen Button */}
       {!isSeen && (
         <button
-          className="ml-auto text-xs font-poppins font-medium text-sky-500 hover:text-sky-600 hover:underline transition"
-          onClick={() => {
+          className="ml-auto shrink-0 text-xs font-poppins font-medium text-cyan-400 hover:text-cyan-300 hover:underline transition"
+          onClick={(e) => {
+            e.stopPropagation();
             handeIsMessageRead(notificationId)
             setIsSeen(true)}}
         >

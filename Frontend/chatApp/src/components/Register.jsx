@@ -66,13 +66,13 @@ function Register() {
   }, [storeData, navigate]);
 
   return (
-    <div className="flex items-center justify-center mt-10">
-      <div className="flex flex-col items-center w-full md:w-[40vw] h-[80vh] p-6 rounded-2xl 
-        shadow-2xl border border-slate-200 
-        bg-white/90 backdrop-blur-md">
+    <div className="flex items-center justify-center min-h-[100dvh] px-4 w-full bg-gradient-to-r from-slate-900 to-slate-700">
+      <div className="flex flex-col items-center w-full sm:w-[80vw] md:w-[60vw] lg:w-[35vw] p-8 md:p-10 rounded-3xl 
+        shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-slate-100/50 
+        bg-white mb-10 overflow-hidden relative">
         
         {/* Title */}
-        <h2 className="text-2xl font-bold mb-4 font-poppins text-gray-800 drop-shadow-sm">
+        <h2 className="text-3xl font-extrabold mb-8 text-neutral-800 font-poppins text-center tracking-tight">
           Create an Account
         </h2>
 
@@ -141,26 +141,28 @@ function Register() {
           )}
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 
-              text-white font-semibold rounded-lg shadow-md transition 
-              disabled:opacity-50"
-            disabled={loading}
-          >
-            {loading ? <SpinnerWithText data={"Signing up..."} /> : "Sign Up"}
-          </Button>
+          <div className="mt-4 w-full">
+            <Button
+              type="submit"
+              className="w-full flex justify-center items-center h-12 mx-auto"
+              disabled={loading}
+            >
+              {loading ? <SpinnerWithText data={"Signing up..."} /> : "Sign Up"}
+            </Button>
+          </div>
 
           {/* Footer */}
-          <h3 className="text-gray-700 text-sm font-poppins text-center">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-blue-600 font-semibold font-poppins hover:underline"
-            >
-              Sign in
-            </Link>
-          </h3>
+          <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-slate-100">
+            <h3 className="text-slate-500 text-sm font-poppins text-center">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-blue-600 font-medium font-poppins hover:text-blue-700 hover:underline transition-colors"
+              >
+                Sign in
+              </Link>
+            </h3>
+          </div>
         </form>
       </div>
     </div>

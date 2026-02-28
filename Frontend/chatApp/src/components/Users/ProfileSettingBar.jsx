@@ -6,14 +6,15 @@ function ProfileSettingBar({
 }) {
     const features =["Update Password ", "Update Bio"]
   return (
-    <ul className={`flex flex-col items-center justify-center sm:h-330px sm:w-250px p-2 rounded-lg  bg-slate-900 shadow-xl bg-opacity-85 overflow-x-hidden overflow-y-scroll scroll-smooth scroll-m-2 scrollbar-custom ${className} absolute ` }>
+    <ul className={`flex flex-col items-center justify-start p-2 rounded-xl bg-slate-800/95 backdrop-blur-md shadow-2xl border border-slate-700 overflow-hidden ${className}`}>
        {
         features.map((element,index)=>(
-            <li key={index} className='w-full px-2 py-1 my-2'><span className='font-montserrat  cursor-pointer hover:transition-all duration-300 ease-linear hover:text-blue-500 bg-opacity-90 shadow-xl bg-blue-200 text-blue-800  rounded-lg p-2 w-full'>
+            <li key={index} className='w-full mb-1 last:mb-0'>
+              <button className='w-full font-poppins text-sm text-left text-slate-300 hover:text-white bg-transparent hover:bg-slate-700/50 rounded-lg p-3 transition-colors duration-200'>
                 {element}
-                </span></li>
-        )
-        )
+              </button>
+            </li>
+        ))
        }
     </ul>
   )

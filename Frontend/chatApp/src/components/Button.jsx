@@ -10,10 +10,10 @@ function Button({
     
 }) {
   return (
-    <button type={type} className={`bg-gradient-to-r from-blue-900 via-blue-100 to-blue-900 transition-all duration-300 
-     hover:scale-105 text-neutral-900 rounded-md px-4 py-2
-      hover:text-gray-200 shadow-md
-      hover:shadow-none 
+    <button type={type} className={`bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 
+     text-white font-medium rounded-lg px-6 py-3
+     font-poppins
+     shadow-sm hover:shadow active:scale-[0.98] w-full sm:w-auto
       ${className} 
       
        ${text}`}

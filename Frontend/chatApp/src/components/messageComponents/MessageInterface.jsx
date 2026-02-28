@@ -154,9 +154,9 @@ useEffect(() => {
 
       <div
         id="chat_type_send"
-        className="w-[67%]  fixed flex justify-center items-center bg-transparent h-20  bottom-0 right-3 "
+        className="w-full md:w-[67%] fixed flex justify-center items-center bg-transparent h-20 bottom-16 md:bottom-0 right-0 md:right-3 px-2 z-10"
       >
-        <MessageInput PropClassName={"w-[40vw] py-3 h-full bg-inherit  shadow-none  font-poppins    focus:bg-inherit duration-200 outline-none text-white placeholder-gray-500 "} />
+        <MessageInput PropClassName={"w-full py-3 h-full bg-inherit shadow-none font-poppins focus:bg-inherit duration-200 outline-none text-white placeholder-gray-500 "} />
       </div>
     </div>
   );

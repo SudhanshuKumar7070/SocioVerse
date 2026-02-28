@@ -52,13 +52,13 @@ function Login() {
   }, [storeData, navigate]);
 
   return (
-    <div className="flex items-center justify-center mt-10">
-      <div className="flex flex-col items-center w-full md:w-[40vw] h-[45vh] p-6 rounded-2xl 
-        shadow-2xl border border-slate-200 
-        bg-white/90 backdrop-blur-md">
+    <div className="flex items-center justify-center min-h-[100dvh] px-4 w-full  bg-gradient-to-r from-slate-900 to-slate-700">
+      <div className="flex flex-col items-center w-full sm:w-[80vw] md:w-[60vw] lg:w-[35vw] p-8 md:p-10 rounded-3xl 
+        shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-slate-100/50 
+        bg-white mb-10 overflow-hidden relative">
         
         {/* Title */}
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 font-poppins drop-shadow-sm">
+        <h2 className="text-3xl font-extrabold mb-8 text-neutral-800 font-poppins text-center tracking-tight">
           Welcome Back
         </h2>
 
@@ -87,35 +87,36 @@ function Login() {
           />
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full py-2   
-              text-neutral-600 font-semibold rounded-lg shadow-md transition 
-              disabled:opacity-50"
-            disabled={loading}
-          >
-            {loading ? <SpinnerWithText data={"Signing in..."} /> : "Sign In"}
-          </Button>
+          <div className="mt-4 w-full">
+            <Button
+              type="submit"
+              className="w-full mx-auto flex justify-center items-center h-12"
+              disabled={loading}
+            >
+              {loading ? <SpinnerWithText data={"Signing in..."} /> : "Sign In"}
+            </Button>
+          </div>
 
           {/* Footer */}
-          <h3 className="text-gray-700 text-sm font-poppins text-center">
-            Don’t have an account?{" "}
-            <Link
-              to="/register"
-              className="text-blue-600 font-semibold font-poppins hover:underline"
-            >
-              Sign up
-            </Link>
-          </h3>
-          <h3 className="text-gray-700 text-sm font-poppins text-center">
-            Forgot Password?{" "}
-            <Link
-              to="/sendEmail"
-              className="text-blue-600 font-semibold font-poppins hover:underline"
-            >
-              Forgot Password
-            </Link>
-          </h3>
+          <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-slate-100">
+            <h3 className="text-slate-500 text-sm font-poppins text-center">
+              Don’t have an account?{" "}
+              <Link
+                to="/register"
+                className="text-blue-600 font-medium font-poppins hover:text-blue-700 hover:underline transition-colors"
+              >
+                Sign up
+              </Link>
+            </h3>
+            <h3 className="text-slate-500 text-sm font-poppins text-center">
+              <Link
+                to="/sendEmail"
+                className="text-slate-500 font-medium font-poppins hover:text-slate-800 hover:underline transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </h3>
+          </div>
         </form>
       </div>
     </div>

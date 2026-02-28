@@ -3,7 +3,7 @@ import UserDetails from './UserDetails'
 
 function AppUser() {
   return (
-    <div className='border-white rounded-lg border sm:min-w-full  sm:min-h-full'>
+    <div className='border-slate-800 rounded-lg max-w-full overflow-hidden'>
       <UserDetails/>
     </div>
   )
