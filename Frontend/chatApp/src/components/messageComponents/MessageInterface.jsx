@@ -128,35 +128,38 @@ useEffect(() => {
   if (isLoading) return ( <SpinnerWithText/>)
     
   return (
-    <div className={` bg-transparent  flex flex-col  ${propClass} `}>
-     <h1 className="text-white font-poppins p-2 absolute top-0">data</h1>
-      {textMessage && textMessage.length > 0 ? (
-        textMessage.map((element, index) => (
-          <div
-            key={index}
-            ref={refrer}
-            className={` flex w-full ${
-              element.sender === myId ? "justify-end" : "justify-start"
-            }`}
-          >
-            {element.sender === myId ? (
-              <ReceivedMessage message={element.text} />
-            ) : (
-              <SendMessage message={element.text} />
-            )}
+    <div className={`w-full flex-1 flex flex-col bg-transparent relative overflow-hidden ${propClass}`}>
+      {/* Scrollable Message Container */}
+      <div className="flex-1 overflow-y-auto scrollbar-custom scroll-smooth px-2 sm:px-4 py-6 w-full flex flex-col gap-2">
+        {textMessage && textMessage.length > 0 ? (
+          textMessage.map((element, index) => (
+            <div
+              key={index}
+              ref={refrer}
+              className={`flex w-full ${
+                element.sender === myId ? "justify-end" : "justify-start"
+              } animate-in fade-in slide-in-from-bottom-2 duration-300`}
+            >
+              {element.sender === myId ? (
+                <SendMessage message={element.text} />
+              ) : (
+                <ReceivedMessage message={element.text} />
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center h-full opacity-50 select-none pointer-events-none pb-12">
+            <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-700">
+               <span className="text-2xl">👋</span>
+            </div>
+            <p className="text-slate-400 font-montserrat text-center">No messages yet.<br/>Start the conversation!</p>
           </div>
-        ))
-      ) : (
-        <div className="text-center text-gray-500 text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          No messages yet. Start a conversation!
-        </div>
-      )}
+        )}
+      </div>
 
-      <div
-        id="chat_type_send"
-        className="w-full md:w-[67%] fixed flex justify-center items-center bg-transparent h-20 bottom-16 md:bottom-0 right-0 md:right-3 px-2 z-10"
-      >
-        <MessageInput PropClassName={"w-full py-3 h-full bg-inherit shadow-none font-poppins focus:bg-inherit duration-200 outline-none text-white placeholder-gray-500 "} />
+      {/* Footer Input Area */}
+      <div className="w-full shrink-0 z-10 bg-slate-900 border-t border-slate-700/50">
+        <MessageInput PropClassName="py-2.5 sm:py-3 bg-transparent text-slate-100 placeholder-slate-500 font-montserrat" />
       </div>
     </div>
   );

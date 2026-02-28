@@ -31,36 +31,36 @@ const MessageInput = ({PropClassName}) => {
    
   
   return (
-    <div className="flex justify-between items-center w-full sm:w-[90%] md:w-[80%] mx-auto bg-slate-900 rounded-lg bg-opacity-80 shadow-xl border border-transparent hover:border-white transition-all duration-300 ease-in p-2 mt-auto mb-2 shrink-0">
-           <span id="currUserImag" className="flex justify-center items-center shrink-0" >
-            <img src={userImageUrl} className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-full shadow-lg"  alt="user1" />
-           </span>
-           <span className="flex justify-center items-center flex-grow mx-2 space-x-2">
-           <Input
+    <div className="w-full bg-slate-800/60 backdrop-blur-md border-t border-slate-700/50 p-3 sm:p-4 shrink-0 transition-all duration-300">
+      <div className="flex justify-between items-center w-full max-w-4xl mx-auto gap-3 sm:gap-4">
+        <span id="currUserImag" className="shrink-0 hidden sm:flex">
+          <img src={userImageUrl || "https://picsum.photos/seed/user/200/200"} className="h-10 w-10 sm:h-12 sm:w-12 rounded-full border border-slate-600/50 object-cover" alt="user" />
+        </span>
+        
+        <div className="flex flex-1 items-center bg-slate-900/50 border border-slate-700/50 rounded-full px-2 sm:px-4 py-1.5 sm:py-2 focus-within:border-sky-500/50 focus-within:ring-1 focus-within:ring-sky-500/50 transition-all">
+          <Input
             placeholder="Type your message..."
             value={textMessage}
-           
             type="text"
-            onChange={(e)=>{
-              setMessage(e.target.value)
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSendMessage()
             }}
-            className={`w-full ${PropClassName} `}
-            
+            onChange={(e) => setMessage(e.target.value)}
+            className={`w-full bg-transparent active:border-none focus:outline-none text-slate-100 placeholder-slate-500 font-montserrat text-sm sm:text-base px-2 ${PropClassName}`}
           />
-          {/* button to send message */}
-          <button
-            onClick={handleSendMessage}
-            className={`bg-sky-300 bg-opacity-90 h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 shrink-0 rounded-full hover:bg-sky-500 hover:text-white flex justify-center items-center `}
-            id=""
-          >
-            <SendHorizontal size={18} stroke="black"/>
-            
-          </button>
-           </span>
-          
-        
-    
-            
+        </div>
+
+        <button
+          onClick={handleSendMessage}
+          disabled={!textMessage.trim()}
+          className={`shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-full flex justify-center items-center transition-all duration-300
+            ${textMessage.trim() 
+              ? "bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-lg hover:shadow-sky-500/25 hover:scale-105" 
+              : "bg-slate-700 text-slate-500 cursor-not-allowed"}`}
+        >
+          <SendHorizontal size={20} strokeWidth={2.5} className={textMessage.trim() ? "translate-x-0.5" : ""} />
+        </button>
+      </div>
     </div>
   );
 };

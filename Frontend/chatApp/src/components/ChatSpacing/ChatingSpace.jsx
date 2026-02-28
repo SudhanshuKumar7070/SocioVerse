@@ -1,16 +1,15 @@
-import React from "react";
+
 import { useRef } from "react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useSocket } from "../SocketConnection.jsx";
 import ContactList from "../ContactList";
-import { Outlet } from "react-router-dom";
-
-// import ChatArea from "./ChatArea";
 import PeopleYouMayKnow from "./PeopleYouMayKnow";
-
 import { useDispatch } from "react-redux";
 import SearchBar from "../SearchBar/SearchBar.jsx";
+
+// // import { useDispatch } from "react-redux";
+// import SearchBar from "../SearchBar/SearchBar.jsx";
 import {
   setCurrentRoom,
   updateConversationState,
@@ -53,25 +52,32 @@ function ChatingSpace() {
     }   
   }, [convoId]);
   return (
-    // className={`${styles.container} h-[100%]  w-[100%] flex justify-center items-start
-    <div className="w-full h-[calc(100vh-80px)] md:h-full px-1 py-1 flex flex-col md:flex-row justify-center items-start relative pb-16 md:pb-0">
-      {/* Contact List / Left Panel (Hidden on mobile if a conversation is open, unless we add routing logic. For now, max width on mobile) */}
-      <div className={`left_Container w-full md:w-[31%] md:min-w-[31%] bg-slate-900 h-[40%] md:h-full bg-opacity-50 shadow-lg md:rounded-lg px-2 py-3 overflow-y-scroll scrollbar-custom scroll-smooth relative ${convoId ? 'hidden md:block' : 'block'}`}>
-        <div id="searchBar " className="w-full sticky top-[0%] z-10 ">
-          <SearchBar width="min-w-full" ref={searchRef}  onChange={(e)=> setSearchVal(e.target.value)}/>
+    <div className="flex flex-col md:flex-row gap-1 h-[100dvh] w-full overflow-hidden relative bg-transparent">
+      
+      {/* Chat List Panel (30% on desktop, full width on mobile if no convo) */}
+      <div 
+        className={`w-full md:w-[30%] lg:w-[25%] bg-slate-900/50 backdrop-blur-md h-full shadow-lg md:rounded-r-2xl px-2 py-3 overflow-y-scroll scrollbar-custom border-r border-slate-700/50 ${convoId ? 'hidden md:block' : 'block flex-1'}`}
+      >
+        <div id="searchBar" className="w-full sticky top-0 z-20 bg-slate-900/90 pb-2 backdrop-blur-xl">
+          <SearchBar width="w-full" ref={searchRef} onChange={(e)=> setSearchVal(e.target.value)}/>
         </div>
-        <h1 className="font-poppins text-2xl text-sky-100 px-1 py-1 my-1 ">
-          Chats
+        
+        <h1 className="font-montserrat font-semibold text-lg sm:text-xl text-slate-200 px-2 py-3 border-b border-slate-700/50 mb-2">
+          Conversations
         </h1>
         <ContactList propClass={"max-h-[60%]"} name={searchVal} />
-         <h1 className="font-poppins text-2xl text-sky-100 px-2 py-1 my-1 ">
-          People You may know
+        
+        <h1 className="font-montserrat font-semibold text-lg sm:text-xl text-slate-200 px-2 py-3 border-t border-b border-slate-700/50 my-2 mt-4">
+          Suggestions
         </h1> 
-         <PeopleYouMayKnow propClass={"h-[30%]"} /> 
+        <PeopleYouMayKnow propClass={"h-[30%]"} /> 
       </div>
-      <div className={`right_Container w-full md:w-[67%] md:min-w-[67%] h-full flex-grow ${!convoId ? 'hidden md:block' : 'block'}`}>
+
+      {/* Active Conversation Area (70% on desktop, full width on mobile if convo open) */}
+      <div 
+        className={`w-full md:flex-1 h-full shadow-lg overflow-hidden bg-slate-900/40 backdrop-blur-sm relative ${!convoId ? 'hidden md:block' : 'block flex-1'}`}
+      >
         <Outlet/>
-        {/* <ChatArea propClass={"w-[100%] h-full "} /> */}
       </div>
     </div>
   );

@@ -1,15 +1,22 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-
 import ChatNavBar from './ChatNavBar.jsx'
 import MessageInterface from '../messageComponents/MessageInterface.jsx'
+
 function ChatArea({propClass}) {
   const {conversationId} = useParams();
-  console.log(conversationId,"convo id hai")
+  
   return (
-    <div  className={`font-poppins  w-full h-full overflow-y-scroll scrollbar-custom scroll-smooth ${propClass} relative`}>
-                  <ChatNavBar navClass={' sm:min-full sm:h-20 absolute top-0 left-0 right-0 bg-black bg-opacity-40 flex justify-between items-center' } optionsClass={``}/>
-          <MessageInterface propClass={propClass} convoId={conversationId} /> 
+    <div className={`font-poppins w-full h-full flex flex-col bg-slate-900/40 relative ${propClass}`}>
+      {/* Top Navigation Bar pinned to top of flex container */}
+      <ChatNavBar 
+        navClass={'w-full h-16 sm:h-20 shrink-0 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 flex justify-between items-center px-4 z-20'} 
+      />
+      
+      {/* Messages Area taking up remaining vertical space */}
+      <div className="flex-1 overflow-hidden relative w-full flex flex-col pt-2">
+        <MessageInterface propClass="w-full h-full" convoId={conversationId} /> 
+      </div>
     </div>
   )
 }
