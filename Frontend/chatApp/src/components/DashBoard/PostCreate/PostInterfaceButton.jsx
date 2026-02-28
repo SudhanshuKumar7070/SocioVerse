@@ -132,32 +132,30 @@ const uploadImage = async()=>{
 
   return (
     <>
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto relative">
-      <ToastContainer position="top-center" autoClose={2000} 
-
-/>
+    <form onSubmit={handleSubmit} className="w-full mx-auto relative group">
+      <ToastContainer position="top-center" autoClose={2000} />
       {/* Main Container */}
-      <div className="relative bg-gradient-to-br from-blue-900/20 via-indigo-900/30 to-slate-900/20 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-blue-400/30 w-full">
+      <div className="relative bg-slate-800/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-700/50 w-full transition-all duration-300 hover:border-slate-600/50 hover:shadow-cyan-500/10 hover:shadow-2xl">
         {/* Floating Elements */}
-        <div className="absolute -top-4 -right-4 w-8 h-8 bg-blue-400/40 rounded-full blur-sm animate-pulse"></div>
-        <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-indigo-400/50 rounded-full blur-sm animate-pulse delay-1000"></div>
+        <div className="absolute -top-4 -right-4 w-8 h-8 bg-cyan-400/20 rounded-full blur-sm animate-pulse"></div>
+        <div className="absolute -bottom-3 -left-3 w-6 h-6 bg-purple-400/20 rounded-full blur-sm animate-pulse delay-1000"></div>
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-blue-100 mb-2 flex items-center justify-center gap-2">
-            <Sparkles className="w-6 h-6 font-poppins text-blue-300" />
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-100 mb-2 flex items-center justify-center gap-2">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 font-poppins text-cyan-400" />
             Share Your Moment
           </h2>
-          <p className="text-blue-200/90 font-montserrat">
+          <p className="text-slate-400 font-montserrat text-sm sm:text-base">
             What's on your mind today?
           </p>
         </div>
     
         {/* Post Text Area */}
-        <Draggable className="mb-6">
+        <div className="mb-6 relative">
           <textarea
             placeholder="Write something amazing..."
-            className="w-full font-montserrat h-32 bg-blue-900/20 border border-blue-400/30 rounded-2xl p-4 text-blue-100 placeholder-blue-200/70 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/50 transition-all duration-300"
+            className="w-full font-montserrat h-32 sm:h-40 bg-slate-900/50 border border-slate-700/50 rounded-2xl p-4 sm:p-5 text-slate-100 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-300 scrollbar-hide"
             value={textValue}
             ref={textareaRef}
             onChange={(e) => {
@@ -172,160 +170,139 @@ const uploadImage = async()=>{
               setWordCount(newCount)
             }}
           />
-        </Draggable>
+        </div>
 
         {/* Action Icons */}
-        <div className="flex justify-between items-center mb-6 px-2 ">
-          <div className="flex gap-4">
-            <label htmlFor="uploadImage" className="p-2 rounded-xl bg-blue-800/30 hover:bg-blue-600/40 transition-colors duration-200 group">
-              <Image className="w-5 h-5 text-blue-200 group-hover:text-blue-200 " />
-              
+        <div className="flex justify-between items-center mb-6 px-1 sm:px-2">
+          <div className="flex gap-3 sm:gap-4 relative">
+            <label htmlFor="uploadImage" className="p-2 sm:p-2.5 rounded-xl bg-slate-700/30 hover:bg-slate-700/60 border border-slate-600/30 transition-all duration-300 cursor-pointer group hover:scale-105 hover:shadow-lg focus:outline-none">
+              <Image className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300" />
             </label>
-            <input id="uploadImage" ref={imageRefrer} accept="image" className="p-2 rounded-xl bg-blue-800/30 hover:bg-blue-600/40 transition-colors duration-200 group" type="file"  hidden onChange={(e)=>{
-             setImageValue(e.target.files[0])
-             console.log(imageRefrer.current.files[0])
-             
+            <input 
+              id="uploadImage" 
+              ref={imageRefrer} 
+              accept="image" 
+              className="hidden" 
+              type="file" 
+              onChange={(e) => {
+                setImageValue(e.target.files[0])
+              }} 
+            />
             
-         
-             
-            }} />
-              
-            
-            <button className="p-2 rounded-xl bg-blue-800/30 hover:bg-blue-600/40 transition-colors duration-200 group" type="button">
+            <button className="p-2 sm:p-2.5 rounded-xl bg-slate-700/30 hover:bg-slate-700/60 border border-slate-600/30 transition-all duration-300 group hover:scale-105 hover:shadow-lg focus:outline-none" type="button">
               <Smile
-                className="w-5 h-5 text-blue-200 group-hover:text-blue-100"
+                className="w-5 h-5 text-purple-400 group-hover:text-purple-300"
                 onClick={() => {
                   setIsOpenImoji((prevState) => !prevState);
                 }}
               />
             </button>
-          </div>
-
-          {isOpenEmoji && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ duration: .3, delay: 0 }}
-              className="absolute top-70 left-50 right-50 "
-            >
-              {" "}
-              <button
-                onClick={() => {
-                  setIsOpenImoji((prevState) => !prevState);
-                }}
+            
+            {/* Emoji Picker Modal */}
+            {isOpenEmoji && (
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-14 left-0 sm:left-14 z-50 shadow-2xl rounded-xl border border-slate-700"
               >
-                <X className="text-white hover:text-red-500 hover:transition-all duration-300 ease-linear" />
-              </button>
-              <EmojiPicker className="border border-red-500 bg-white " onEmojiClick={handleEmojiSelect} >
-                <EmojiPicker.Header>
-                  <EmojiPicker.Input placeholder="Search emoji" />
-                </EmojiPicker.Header>
-                <EmojiPicker.Group>
-                  <EmojiPicker.List />
-                </EmojiPicker.Group>
-              </EmojiPicker>
-            </motion.div>
-          )}
-          <div className="text-blue-300/80 text-sm font-poppins">{`${wordCount}/280`}</div>
-        </div>
-        
-        {/* Main Post Button */}
-        {isLoading &&  <span className="absolute top-1/2 left-1/2 "><SpinnerWithText /></span> }
-        { !imageValue && <button
-          type="submit"
-         
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onMouseDown={() => setIsPressed(true)}
-          onMouseUp={() => setIsPressed(false)}
-          className={`
-            relative w-full py-4 px-8 rounded-2xl font-semibold text-lg
-            transition-all duration-300 transform z-10
-            ${isPressed ? "scale-95" : isHovered ? "scale-105" : "scale-100"}
-            ${
-              isPosted
-                ? "bg-green-500 shadow-green-500/50"
-                : "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 shadow-blue-500/50"
-            }
-            shadow-2xl border border-blue-400/40
-            overflow-hidden group
-          `}
-        >
-          {/* Button Background Effect */}
-          <div className="absolute inset-0 bg-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-          {/* Shimmer Effect */}
-          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-blue-200/30 to-transparent skew-x-12"></div>
-
-          {/* Button Content */}
-          <div className="relative flex items-center justify-center gap-3 text-blue-50">
-            {isPosted ? (
-              <>
-                <Heart className="w-6 h-6 fill-current animate-bounce" />
-                <span>Posted!</span>
-              </>
-            ) : (
-              <>
-                <Send
-                  className={`w-6 h-6 transition-transform duration-300 ${
-                    isHovered ? "translate-x-1" : ""
-                  }`}
-                />
-                <span className="font-poppins">Share Post</span>
-                <Sparkles
-                  className={`w-5 h-5 transition-transform duration-300 ${
-                    isHovered ? "rotate-180" : ""
-                  }`}
-                />
-               
-              </>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpenImoji(false)}
+                    className="absolute -top-3 -right-3 p-1 flex items-center justify-center bg-slate-800 border border-slate-600 rounded-full text-slate-300 hover:text-white hover:bg-rose-500 hover:border-rose-500 transition-all duration-200 z-10 shadow-lg"
+                  >
+                    <X size={12} strokeWidth={3} />
+                  </button>
+                  <EmojiPicker 
+                    theme="dark"
+                    onEmojiClick={handleEmojiSelect} 
+                    previewConfig={{ showPreview: false }} 
+                    searchDisabled={false}
+                    lazyLoadEmojis={true}
+                    style={{
+                      backgroundColor: '#1e293b', // slate-800
+                      border: 'none',
+                      borderRadius: '12px',
+                      boxShadow: 'none',
+                      '--epr-search-input-bg-color': '#0f172a', // slate-900
+                      '--epr-category-label-bg-color': '#1e293b', 
+                      '--epr-search-border-color': '#334155', // slate-700
+                      height: '350px',
+                      width: '300px'
+                    }}
+                  />
+                </div>
+              </motion.div>
             )}
           </div>
-        </button>}
-      
-        {/* Success Animation */}
-        {isPosted && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-green-500/20 rounded-full p-8 animate-ping">
-              <Heart className="w-8 h-8 text-green-400 fill-current" />
+          
+          <div className="text-slate-500 font-medium text-xs sm:text-sm font-poppins bg-slate-900/50 px-3 py-1.5 rounded-full border border-slate-700/50">
+            {`${wordCount}/280`}
+          </div>
+        </div>
+        
+        {/* Upload Preview Chip */}
+        {imageValue && (
+          <div className="mb-4 flex items-center justify-between p-3 bg-slate-700/30 border border-slate-600/50 rounded-xl animate-in fade-in zoom-in duration-300">
+            <div className="flex items-center gap-3 overflow-hidden">
+               <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 border border-slate-600">
+                 <Image className="w-5 h-5 text-cyan-400" />
+               </div>
+               <p className="text-slate-300 font-poppins text-sm truncate max-w-[150px] sm:max-w-[250px]">
+                 {imageRefrer.current?.files[0]?.name || "Image appended"}
+               </p>
             </div>
+            <button 
+              type="button" 
+              onClick={() => {
+                setImageValue("");
+                if(imageRefrer.current) imageRefrer.current.value = "";
+              }}
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 rounded-lg transition-colors"
+            >
+              <X size={18} />
+            </button>
           </div>
         )}
-      </div>
-       <div className="absolute top-0 right-0 ">
-                  {imageRefrer.current &&  <p className="text-blue-50 font-montserrat   rounded-xl border border-white flex flex-col p-2 bg-slate-500 bg-opacity-20 ">
-                   {imageRefrer.current.files[0]?.name}</p>}
-                </div>
-    </form>
-     { imageValue && <button
-          onClick={uploadImage}
-         
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onMouseDown={() => setIsPressed(true)}
-          onMouseUp={() => setIsPressed(false)}
-          className={`
-            relative w-full py-4 px-8 rounded-2xl font-semibold text-lg
-            transition-all duration-300 transform z-10
-            ${isPressed ? "scale-95" : isHovered ? "scale-105" : "scale-100"}
-            ${
-              isPosted
-                ? "bg-green-500 shadow-green-500/50"
-                : "bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-500 shadow-blue-500/50"
-            }
-            shadow-2xl border border-blue-400/40
-            overflow-hidden group
-          `}
-        >
+        
+        {/* Unified Submit Button */}
+        <div className="relative w-full">
+          {isLoading && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm rounded-2xl">
+              <SpinnerWithText text="Publishing..." />
+            </div>
+          )}
+          
+          <button
+            type="button"
+            onClick={imageValue ? uploadImage : handleSubmit}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onMouseDown={() => setIsPressed(true)}
+            onMouseUp={() => setIsPressed(false)}
+            disabled={isLoading || (!textValue.trim() && !imageValue)}
+            className={`
+              relative w-full py-3.5 sm:py-4 px-6 sm:px-8 rounded-2xl font-semibold text-base sm:text-lg
+              transition-all duration-300 transform z-10 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:ring-offset-2 focus:ring-offset-slate-900
+              ${isPressed ? "scale-95" : isHovered ? "scale-[1.02]" : "scale-100"}
+              ${(!textValue.trim() && !imageValue) ? "opacity-50 cursor-not-allowed bg-slate-700 shadow-none border-slate-600" :
+                isPosted
+                  ? "bg-emerald-500 shadow-emerald-500/30 border-emerald-400"
+                  : "bg-gradient-to-r from-cyan-500 hover:from-cyan-400 to-blue-600 hover:to-blue-500 shadow-cyan-500/25 border-cyan-400/50"
+              }
+              shadow-xl border overflow-hidden group
+            `}
+          >
           {/* Button Background Effect */}
-          <div className="absolute inset-0 bg-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className={`absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${(!textValue.trim() && !imageValue) ? "hidden" : ""}`}></div>
 
           {/* Shimmer Effect */}
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-blue-200/30 to-transparent skew-x-12"></div>
 
           {/* Button Content */}
-          <div className="relative flex items-center justify-center gap-3 text-blue-50">
+          <div className="relative flex items-center justify-center gap-2 sm:gap-3 text-white">
             {isPosted ? (
               <>
                 <Heart className="w-6 h-6 fill-current animate-bounce" />
@@ -338,19 +315,29 @@ const uploadImage = async()=>{
                     isHovered ? "translate-x-1" : ""
                   }`}
                 />
-                <span className="font-poppins"> Post Image</span>
+                <span className="font-poppins">{imageValue ? "Share Image Post" : "Share Update"}</span>
                 <Sparkles
-                  className={`w-5 h-5 transition-transform duration-300 ${
-                    isHovered ? "rotate-180" : ""
+                  className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-500 ${
+                    isHovered ? "rotate-180 scale-125 text-yellow-300" : ""
                   }`}
                 />
-               
               </>
             )}
           </div>
         </button>
-}
-</>
+        </div>
+      
+        {/* Success Animation */}
+        {isPosted && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+            <div className="bg-emerald-500/20 backdrop-blur-sm rounded-full p-8 animate-ping">
+              <Heart className="w-10 h-10 sm:w-16 sm:h-16 text-emerald-400 fill-current drop-shadow-lg scale-150" />
+            </div>
+          </div>
+        )}
+      </div>
+    </form>
+    </>
   );
 };
 
