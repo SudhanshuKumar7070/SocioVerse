@@ -13,13 +13,11 @@ import mongoose from "mongoose";
 import { Notification } from "../Models/notification.model.js";
 import { User } from "../Models/user.model.js";
 
-
-
 const server = createServer(app);
 // const io = new Server(server, {
 //   cors: {
 //     origin: "http://localhost:5173",
-  
+
 //     credentials: true,
 //   },
 // });
@@ -29,20 +27,19 @@ const io = initiliseIo(server);
 // const SocketToUser = new Map();
 
 // establishing global socket........................ .........................
-  let globalNamespace = initiliseGlobalNameSpace(io);
+let globalNamespace = initiliseGlobalNameSpace(io);
 
- // this is for handling global events like friend request, notifications etc.
- // here we can store user to socket map to get realtime users
+// this is for handling global events like friend request, notifications etc.
+// here we can store user to socket map to get realtime users
 
 //  export {globalNamespace , io}
 // subscriber.on("message",(channel,message)=>{
 //   if(channel !== "friend_request_channel") return;
 //   const response = JSON.parse(message)
 //   console.log('data get of subscriber', response);
-  
- 
+
 //  const receiverId = response?.data?.receiverId;
- 
+
 //  const requiredSocketId = userToSocketMap.get(receiverId);
 //    if(!requiredSocketId) {
 //     console.log("user not connected to global namespace");
@@ -53,10 +50,10 @@ const io = initiliseIo(server);
 //     message: "You have a new friend request",
 //   });
 // })
- 
+
 // subscriber.on("message",(channel, message)=>{
 //   console.log('message::::',message);
-  
+
 //  if ( channel === "chat_Notification_channel" ){
 //   const channelData = JSON.parse(message);
 //    console.log('got channel data for chatting  notification,:',channelData);
@@ -66,63 +63,63 @@ const io = initiliseIo(server);
 //       console.log("user not connected to global namespace");
 //       return;
 //     }
-    
+
 //     globalNamespace.to(reqSocketId).emit("newChatNotification", {
 //       senderId:channelData?.data?.senderId,
 //       message: "You have a new notification",
 //       textMessage: channelData?.data?.textMessage
 //     });
-   
+
 //  }
 //  else{
 //   return;
 //  }
 // })
 
-
 // global socket ends..........................................................
 
-
-
-
 //  subscriber.subscribe("friend_request_channel"); // cant use redis pubsub here , we can use it effectively ,
-//  when we have multiple instances of node js , or 
-// when we more than one server 
+//  when we have multiple instances of node js , or
+// when we more than one server
 
-
- 
-  const chatNamespace = io.of("/chat") // this if for handlling chatting area or feature of app.
-  chatNamespace.on("connection", (socket) => {
+const chatNamespace = io.of("/chat"); // this if for handlling chatting area or feature of app.
+chatNamespace.on("connection", (socket) => {
   // console.log("io connection setup sucessfully with:", socket.id, query);
-    //  globalNamespace.emit("FollowRequest",{data:"dekho yaha kaam karta  hai ya nahi.."})
+  //  globalNamespace.emit("FollowRequest",{data:"dekho yaha kaam karta  hai ya nahi.."})
   socket.on("startChat", async (data) => {
     const { receiverId, senderId } = data;
     console.log(
       " data received frontend ::> receiver:",
       receiverId,
       "sender:",
-      senderId
+      senderId,
     );
-   if([receiverId,senderId].some((element)=>element.trim()==="")) throw new ApiError(404,"required credentials are not available at the moment")
+    if ([receiverId, senderId].some((element) => element.trim() === ""))
+      throw new ApiError(
+        404,
+        "required credentials are not available at the moment",
+      );
 
     try {
-      
       let conversation = await Conversation.findOne({
         participants: {
-          $all: [new mongoose.Types.ObjectId(senderId), 
-            new mongoose.Types.ObjectId(receiverId)],
+          $all: [
+            new mongoose.Types.ObjectId(senderId),
+            new mongoose.Types.ObjectId(receiverId),
+          ],
         },
       });
       console.log("conversation created ::", conversation);
-   
+
       if (!conversation) {
-         conversation = await Conversation.create({
+        conversation = await Conversation.create({
           participants: [senderId, receiverId],
           isGroup: false,
         });
-       if(!conversation) throw new ApiError(404,"conversation not created at the moment");
+        if (!conversation)
+          throw new ApiError(404, "conversation not created at the moment");
       }
-      const conversationRoom =  `chat_${conversation?._id}`;
+      const conversationRoom = `chat_${conversation?._id}`;
       console.log("conversation room created ::", conversationRoom);
       socket.join(conversationRoom);
 
@@ -140,12 +137,18 @@ const io = initiliseIo(server);
     if (!conversationID || !senderId || !receiverId || !textMessage) {
       throw new ApiError(400, "Missing required message details");
     }
-    
-    console.log('data after conversattion started ::>',conversationID, senderId, textMessage, receiverId );
-    
+
+    console.log(
+      "data after conversattion started ::>",
+      conversationID,
+      senderId,
+      textMessage,
+      receiverId,
+    );
+
     try {
-      const message =await Message.create({
-        conversationId: conversationID,  
+      const message = await Message.create({
+        conversationId: conversationID,
         sender: senderId,
         receiver: receiverId,
         text: textMessage,
@@ -155,53 +158,68 @@ const io = initiliseIo(server);
       //  const publishData = await publisher.connect();
       //  if(!publishData) {
       //   console.log('error in connecting publisher at send message',publishData);
-        
+
       //  }
       // publisher.publish("chat_Notification_channel",JSON.stringify({data: message}));
 
       // checking output of message array.
       console.log("message result :", message);
 
-      
       // Update conversation's last message
-      await Conversation.findByIdAndUpdate(conversationID, {
-        $set: {
-          lastMessage: {
-            messageId: message._id,
-            message: textMessage,
-            timestamp: new Date(),
-          }
-        }
-      }, { new: true });
+      await Conversation.findByIdAndUpdate(
+        conversationID,
+        {
+          $set: {
+            lastMessage: {
+              messageId: message._id,
+              message: textMessage,
+              timestamp: new Date(),
+            },
+          },
+        },
+        { new: true },
+      );
       // broadcast message to conversation room
       // publisher.publish(receiverId,{message:"message from redis"})
       // creting a notification
-        const notification = await Notification.create({
-         content:textMessage,
-         
-         sender: senderId,
-         receiver: receiverId,
-        service:"chatMessage",
-        conversationId:conversationID
-       })
-       if(!notification) throw new ApiError(500,"unable to generate notification at moment");
-       const senderDetail = await User.findById(senderId).select("profilePicture userName ");
-       if(!senderDetail) throw new ApiError(500,"something went wrong in fiding details at moment");
-       
-          // const reqSocketId = userToSocketMap.get(receiverId);
-          // console.log('hebflaj',userToSocketMap);
-           
-          // console.log('reqSocketData:', reqSocketId);
-          // search for socketId of online users and send notification to them 
-          // if  (reqSocketId) {
-          //   globalNamespace.to(reqSocketId).emit("newNotification",{notification: notification})
-          // tried new approach 
-        globalNamespace.to(receiverId).emit("newChatNotfication",{message:notification, sender:senderDetail})
+      const notification = await Notification.create({
+        content: textMessage,
+        sender: senderId,
+        receiver: receiverId,
+        service: "chatMessage",
+        sourceId: conversationID,
+        sourceModel: "Conversation",
+      });
+      if (!notification)
+        throw new ApiError(500, "unable to generate notification at moment");
+      const senderDetail = await User.findById(senderId).select(
+        "profilePicture userName ",
+      );
+      if (!senderDetail)
+        throw new ApiError(
+          500,
+          "something went wrong in fiding details at moment",
+        );
+
+      // const reqSocketId = userToSocketMap.get(receiverId);
+      // console.log('hebflaj',userToSocketMap);
+
+      // console.log('reqSocketData:', reqSocketId);
+      // search for socketId of online users and send notification to them
+      // if  (reqSocketId) {
+      //   globalNamespace.to(reqSocketId).emit("newNotification",{notification: notification})
+      // tried new approach
+      globalNamespace
+        .to(receiverId)
+        .emit("newChatNotfication", {
+          message: notification,
+          sender: senderDetail,
+        });
       chatNamespace.to(`chat_${conversationID}`).emit("newMessage", {
         messageId: message._id,
-        conversationID:conversationID,
-        senderId:senderId,
-        receiverId:receiverId,
+        conversationID: conversationID,
+        senderId: senderId,
+        receiverId: receiverId,
         text: textMessage,
         timestamp: message.createdAt,
       });
@@ -210,8 +228,5 @@ const io = initiliseIo(server);
     }
   });
 });
-
-
-
 
 export { server };

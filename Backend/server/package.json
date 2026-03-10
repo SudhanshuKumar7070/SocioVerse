@@ -15,6 +15,7 @@
     "body-parser": "^1.20.3",
     "cloudinary": "^2.6.0",
     "express": "^4.21.2",
+    "firebase-admin": "^13.7.0",
     "mongodb": "^7.1.0",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "nodemailer": "^7.0.6",
