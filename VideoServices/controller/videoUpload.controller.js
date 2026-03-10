@@ -1,4 +1,4 @@
-import { videoQueue } from "../queue.setup.js";
+import { videoQueue } from "../Config/queue.setup.js"
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import { ReelVideo } from "../Db/Schema/videoSchema.js";

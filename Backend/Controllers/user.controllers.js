@@ -3,11 +3,11 @@ import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { uploadProfileImage } from "../Utils/uploadToCloudinary.js";
 import jwt from "jsonwebtoken";
-import bcrypt from 'bcrypt'
+import bcrypt from "bcrypt";
 import { AsyncHandler } from "../Utils/AsyncHandler.js";
 import mongoose from "mongoose";
 import { transporter } from "../Utils/nodeMailer.setup.js";
-
+import { TokenUser } from "../Models/fcmToken.models.js";
 const options = {
   httpOnly: true,
   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
@@ -33,7 +33,7 @@ const registerUser = AsyncHandler(async (req, res) => {
 
   if (
     [userName, password, email, fullName].some(
-      (element) => element?.trim() === ""
+      (element) => element?.trim() === "",
     )
   )
     throw new ApiError(400, "all fields are required ");
@@ -47,7 +47,7 @@ const registerUser = AsyncHandler(async (req, res) => {
   const currentProfilePictureUrl = req.file?.path;
   console.log(
     " current profile picture  local_path:>",
-    currentProfilePictureUrl
+    currentProfilePictureUrl,
   );
   let cloudinaryResponse = "";
   if (currentProfilePictureUrl) {
@@ -55,7 +55,7 @@ const registerUser = AsyncHandler(async (req, res) => {
     if (!cloudinaryResponse) {
       throw new ApiError(
         500,
-        "something went wrong in uploading image to cloudinary"
+        "something went wrong in uploading image to cloudinary",
       );
     }
 
@@ -63,11 +63,6 @@ const registerUser = AsyncHandler(async (req, res) => {
   }
 
   console.log(" current profile picture  local_path", currentProfilePictureUrl);
-  //   uploading to cloudinary
-
-  // if (!currentProfilePictureUrl) {
-  //   return new ApiError(400, " profile picture is not avaialable");
-  // }
 
   const user = await User.create({
     fullName,
@@ -82,18 +77,18 @@ const registerUser = AsyncHandler(async (req, res) => {
   if (!user)
     throw new ApiError(
       500,
-      "something went wrong in registering user , user not created"
+      "something went wrong in registering user , user not created",
     );
   //    checking for register
   const createdUser = await User.findById(user._id).select(
-    " -password -refreshToken "
+    " -password -refreshToken ",
   );
   if (!createdUser) {
     throw new ApiError(500, " error in registring user ");
   }
   //  adding cookie after register , so user will be automatically logged in
   const { AccessToken, RefreshToken } = await getAccessAndRefreshToken(
-    user?._id
+    user?._id,
   );
   console.log("tokens at register controller", { AccessToken, RefreshToken });
 
@@ -107,8 +102,8 @@ const registerUser = AsyncHandler(async (req, res) => {
         " user created sucessfully ",
         createdUser,
         AccessToken,
-        RefreshToken
-      )
+        RefreshToken,
+      ),
     );
 });
 // login controller____=====**********
@@ -127,45 +122,37 @@ const loginUser = AsyncHandler(async (req, res) => {
   const isVerifiedPassWord = await currentUser?.isCorrectPassword(password);
   if (!isVerifiedPassWord) throw new ApiError(401, "invalid password");
   const { AccessToken, RefreshToken } = await getAccessAndRefreshToken(
-    currentUser?._id
+    currentUser?._id,
   );
   if ([AccessToken, RefreshToken].some((field) => field.trim() === ""))
     throw new ApiError(
       500,
-      "something went wrong ,missing refresh or access token"
+      "something went wrong ,missing refresh or access token",
     );
 
   // get user data via refresh Token
   const loggedUser = await User.findById(currentUser._id).select(
-    " -password -RefreshToken"
+    " -password -RefreshToken",
   );
   if (!loggedUser) throw new ApiError(404, " existing user not exits");
   console.log("access token  for  check::", AccessToken);
 
-  return (
-    res
-      .status(200)
-      .cookie("accessToken", AccessToken, options)
-      // .cookie("accessToken", AccessToken, {
-      //   httpOnly: true,
-      //   secure: process.env.NODE_ENV === "production",
-      //   sameSite: "strict",
-
-      // })
-      .cookie("refreshToken", RefreshToken, options)
-      .setHeader("auth-cookie", "sessionId=abc123; max-age=31536000; path=/;")
-      .json(
-        new ApiResponse(
-          200,
-          {
-            AccessToken,
-            RefreshToken,
-            user: loggedUser,
-          },
-          "login successfull"
-        )
-      )
-  );
+  return res
+    .status(200)
+    .cookie("accessToken", AccessToken, options)
+    .cookie("refreshToken", RefreshToken, options)
+    .setHeader("auth-cookie", "sessionId=abc123; max-age=31536000; path=/;")
+    .json(
+      new ApiResponse(
+        200,
+        {
+          AccessToken,
+          RefreshToken,
+          user: loggedUser,
+        },
+        "login successfull",
+      ),
+    );
 });
 
 // generate new refresh Token if the previous one is expired
@@ -176,18 +163,18 @@ const generateNewRefreshToken = AsyncHandler(async (req, res) => {
     new ApiError(404, "refresh token unavailabe in the field");
   const decodedData = jwt.verify(
     oldRefreshToken,
-    process.env.DataBase_Secret_Acess_key
+    process.env.DataBase_Secret_Acess_key,
   );
   const user = await User.findById(decodedData?._id).select(
-    " -password , -RefreshToken"
+    " -password , -RefreshToken",
   );
   if (!user)
     throw new ApiError(
       404,
-      "something went wrong in finding user from decoded data"
+      "something went wrong in finding user from decoded data",
     );
   const { AccessToken, RefreshToken } = await getAccessAndRefreshToken(
-    user?._id
+    user?._id,
   );
   user.RefreshToken = RefreshToken;
   await user.save();
@@ -199,8 +186,8 @@ const generateNewRefreshToken = AsyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { refreshToken: RefreshToken, accessToken: AccessToken, user: user },
-        "tokens updated successfully"
-      )
+        "tokens updated successfully",
+      ),
     );
 });
 // get all user of the application
@@ -249,14 +236,14 @@ const addRegisterContacts = AsyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
   if (!updatedUserContact)
     throw new ApiError(400, "error in updating the context at the moment");
   return res
     .status(200)
     .json(
-      new ApiResponse(200, updatedUserContact, "contact added sussessfully")
+      new ApiResponse(200, updatedUserContact, "contact added sussessfully"),
     );
 });
 
@@ -275,9 +262,6 @@ const getUserContacts = AsyncHandler(async (req, res) => {
         _id: usableUserId,
       },
     },
-    //  {$addFields:{
-    //   contactDetails:"contactsDetails"
-    //  }},
 
     {
       $lookup: {
@@ -302,20 +286,6 @@ const getUserContacts = AsyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, user, "Contacts fetched successfully"));
 });
-//  const getUserContacts = AsyncHandler(async(req,res)=>{
-//     const {userId} = req.params;
-//     if(!userId.trim()) throw new ApiError (400 , "userId not found at the moment");
-//     if (!mongoose.Types.ObjectId.isValid(userId)) {
-//           throw new ApiError(400, "Invalid userId format");
-//         }
-//         const usableId  = new mongoose.Types.ObjectId(userId);
-//           const contactDetails = await User.find({_id:usableId}).populate({
-//             path:"contacts.userId",
-//              select:"_id profilePicture fullName"
-//           })
-//           if(!contactDetails) throw new ApiError(404,"unable to fetch contacts at the moment");
-//            return res.status(200).json(new ApiResponse(200,contactDetails,"data fetched successfully"));
-//  })
 
 const LogoutUser = AsyncHandler(async (req, res) => {
   console.log("user at  moment,", req.user);
@@ -337,7 +307,7 @@ const LogoutUser = AsyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
   if (!user) throw new ApiError(404, "can't logout user at  the moment");
   const option = {
@@ -364,15 +334,8 @@ const setBio = AsyncHandler(async (req, res) => {
     gender,
     socialLinks,
     country,
-    city
+    city,
   );
-
-  // if (
-  //   [dateOfBirth, gender, socialLinks, country, city].some(
-  //     (element) => !element
-  //   )
-  // )
-  //   throw new ApiError(400, "all filelds are required");
 
   const bannerImageLocalPath = req.file?.path;
   let bannerCloudUrl;
@@ -381,7 +344,7 @@ const setBio = AsyncHandler(async (req, res) => {
     if (!cloudinaryPath.url)
       throw new ApiError(
         500,
-        "something went wrong in uploading banner  to cloudinary"
+        "something went wrong in uploading banner  to cloudinary",
       );
     bannerCloudUrl = cloudinaryPath.url;
   }
@@ -400,9 +363,9 @@ const setBio = AsyncHandler(async (req, res) => {
       },
       lastUpdated: Date.now(),
     },
-    { new: true }
+    { new: true },
   );
-  // const user = await User.findById(new mongoose.Types.ObjectId(userId))
+
   console.log("user at set bio:", user);
 
   if (!user) throw new ApiError(500, "something went wrong in updating bio");
@@ -476,11 +439,11 @@ const sendResetPassMail = AsyncHandler(async (req, res) => {
     if (!user)
       throw new ApiError(
         404,
-        "invalid email , this emiail is not registered , need to signup first"
+        "invalid email , this emiail is not registered , need to signup first",
       );
     // random number to send code
     const forgot_code = Math.floor(100000 + Math.random() * 900000);
-    user.forgotPasswordCode=forgot_code;
+    user.forgotPasswordCode = forgot_code;
     await user.save();
     console.log(user.forgotPasswordCode);
     console.log(user);
@@ -557,15 +520,13 @@ const sendResetPassMail = AsyncHandler(async (req, res) => {
         console.log("SMTP connection successful ✅, ready to send emails!");
       }
     });
-    //  if(!mailRes){
-    //   throw new ApiError(500,"something went wrong in sending reset password mail");
-    //  }
+
     return res.status(200).json({ message: "mail sent successfully" });
   } catch (err) {
     console.log("error creating at forgot password , err=", err);
     throw new ApiError(
       500,
-      `error creating at forgot password , err:${err.message}`
+      `error creating at forgot password , err:${err.message}`,
     );
   }
 });
@@ -573,7 +534,7 @@ const sendResetPassMail = AsyncHandler(async (req, res) => {
 const matchForgotCode = AsyncHandler(async (req, res) => {
   const { resetCode } = req.body;
   const { email } = req.params;
-   console.log("email and resetCode,", resetCode , email)
+  console.log("email and resetCode,", resetCode, email);
   if ([email, resetCode].some((el) => !el)) {
     throw new ApiError(400, "email or resetCode is missing ..");
   }
@@ -581,7 +542,7 @@ const matchForgotCode = AsyncHandler(async (req, res) => {
     email: email,
     forgotPasswordCode: Number(resetCode),
   });
-  console.log("checking user at match forgot",user)
+  console.log("checking user at match forgot", user);
   if (!user) throw new ApiError(400, "wrong reset code ! retry");
   return res
     .status(200)
@@ -599,16 +560,15 @@ const resetPassword = AsyncHandler(async (req, res) => {
   if (!newPassword) {
     throw new ApiError(400, "Password is required");
   }
- console.log('new password:',newPassword);
-  const hashedPassword = await bcrypt.hash(newPassword,10);
+  console.log("new password:", newPassword);
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
   const updatedUser = await User.findOneAndUpdate(
     { email: email, forgotPasswordCode: Number(forgot_pass_code) },
     { $set: { password: hashedPassword } },
-    { new: true }
+    { new: true },
   );
- console.log(updatedUser);
+  console.log(updatedUser);
   if (!updatedUser) {
-      
     throw new ApiError(500, "Something went wrong in updating password");
   }
 
@@ -620,12 +580,39 @@ const resetPassword = AsyncHandler(async (req, res) => {
 // get current user data for reloads
 const getCurrentUserData = AsyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  if(!userId) throw new ApiError(400,"unauthorised access");
-  const user = await User.findById(userId)
-  if(!user) throw new ApiError(404,"user not found at the moment");
-  return res.status(200).json(new ApiResponse(200,user,"data fetched successfully"))
+  if (!userId) throw new ApiError(400, "unauthorised access");
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "user not found at the moment");
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "data fetched successfully"));
+});
 
-})
+// set fcm token to data base
+const setFCMToken = AsyncHandler(async (req, res) => {
+  if (!req.user || !req.user._id) throw new ApiError(402, "not authenticated");
+  const user_id = req.user._id;
+  const { deviceName, fcmToken, device } = req.body;
+  if (!fcmToken || !deviceName || !device)
+    throw new ApiError(404, "invalid info or missing some infos  there");
+  //  checking  for duplicates
+  const prev = await TokenUser.findOne({ user: user_id, fcmToken: fcmToken });
+  if (prev) return res.status(409).json({ message: "token already exists" });
+  const result = await TokenUser.create({
+    fcmToken: fcmToken,
+    device: device,
+    deviceName: deviceName,
+    user: user_id,
+  });
+  if (!result)
+    throw new ApiError(
+      500,
+      "something went wrong in registering user fcm token",
+    );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "successfully registered"));
+});
 
 export {
   registerUser,
@@ -642,6 +629,7 @@ export {
   sendResetPassMail,
   matchForgotCode,
   resetPassword,
-  getCurrentUserData
-
+  getCurrentUserData,
+  // fcm Token
+  setFCMToken,
 };

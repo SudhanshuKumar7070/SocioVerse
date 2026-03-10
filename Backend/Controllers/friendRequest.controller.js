@@ -7,7 +7,8 @@ import { ApiResponse } from "../Utils/ApiResponse.js";
 import { Friend } from "../Models/friends.model.js";
 import { Notification } from "../Models/notification.model.js";
 import { User } from "../Models/user.model.js";
-
+import { inAppNotificationQueue } from "../Config/Queue.config.js";
+import { pushNotificationQueue } from "../Config/Queue.config.js";
 // function for checking the users are already friends or not
 const checkForFriends = async (sender, receiver) => {
   const areFriends = await Friend.findOne({
@@ -28,13 +29,15 @@ const checkForFriends = async (sender, receiver) => {
 
 //send friend request
 const sendFriendRequest = AsyncHandler(async (req, res) => {
-  const globalNameSpace = getGlobalNamespace();
+  // const globalNameSpace = getGlobalNamespace();
   const senderId = req.user?._id;
   if (!senderId)
     throw new ApiError(
-      "you need to login first , to send friend request to your friend "
+      402,
+      "you need to login first , to send friend request to your friend ",
     );
   const { receiverId } = req.params;
+  const convertedReceiverId = new mongoose.Types.ObjectId(receiverId);
   if (!receiverId.trim())
     throw new ApiError(400, "receiver id not available at the moment");
   if (!mongoose.Types.ObjectId.isValid(receiverId))
@@ -43,49 +46,77 @@ const sendFriendRequest = AsyncHandler(async (req, res) => {
   // checking if they already are friends or not if are friends , they will not be allowed bo friend
   const areFriends = await checkForFriends(senderId, receiverId);
   if (areFriends) throw new ApiError(500, "you both are already friends");
-  const friendRequest = await FriendRequest.create({
-    senderId: senderId,
-    receiverId: new mongoose.Types.ObjectId(receiverId),
-  });
-  if (!friendRequest)
-    throw new ApiError(500, "somethong went wrong in creating friend request");
-  const newNotification = await Notification.create({
-    content: `you have a friend request`,
-    sender: senderId,
-    receiver: friendRequest?.receiverId,
-    service: "friendRequest",
-    friendRequestId: friendRequest?._id,
-  });
-  if (!newNotification)
-    throw new ApiError(
-      400,
-      "something went wrong in generating  friend request notification"
+  const session = await mongoose.startSession();
+  try {
+    //  session.startTransaction();
+    const [friendRequest] = await FriendRequest.create(
+      [
+        {
+          senderId: senderId,
+          receiverId: convertedReceiverId,
+        },
+      ],
+      //  { session },
     );
+    // const [newNotification] = await Notification.create(
+    //   [
+    //     {
+    //       content: `you have a friend request`,
+    //       sender: senderId,
+    //       receiver: friendRequest?.receiverId,
+    //       service: "friendRequest",
+    //       friendRequestId: friendRequest?._id,
+    //     },
+    //   ],
+    //   { session },
+    // );
+    // await session.commitTransaction();
+    // const receiverRoom = friendRequest?.receiverId.toString();
+    // globalNameSpace
+    //   .to(receiverRoom)
+    //   .emit("friend_request_notification", { newNotification, friendRequest });
 
-  const receiverRoom = friendRequest?.receiverId.toString();
-  globalNameSpace
-    .to(receiverRoom)
-    .emit("friend_request_notification", { newNotification, friendRequest });
+    // globalNameSpace
+    //   .to(friendRequest.receiverId)
+    //   .emit("friend_request", { friendRequest });
 
-  globalNameSpace
-    .to(friendRequest.receiverId)
-    .emit("friend_request", { friendRequest });
-
-  // publisher.publish(
-  //   "friend_request_channel",
-  //   JSON.stringify({ data: friendRequest })
-  // );
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      {
-        friendRequest: friendRequest,
-        notification: newNotification,
-      },
-      "request created successfully"
-    )
-  );
+    /** --- implementing queue system for sending notification */
+    inAppNotificationQueue.add("sendNotification", {
+      senderId: senderId,
+      receiverId: convertedReceiverId,
+      content: `you have a friend request`,
+      service: "friendRequest",
+      sourceId: friendRequest?._id,
+      sourceModel: "FriendRequest",
+      receiverChannel: friendRequest?.receiverId.toString(),
+      eventName: "friend_request_notification",
+      payload: friendRequest,
+    });
+  pushNotificationQueue.add("pushNotificationQueue",{
+    senderId:senderId,
+    receiverId:convertedReceiverId,
+    content: `you have a friend request`,
+    service: "friendRequest",
+     sourceId: friendRequest?._id,
+     sourceModel: "FriendRequest",
+     payload: friendRequest,
+  })
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          friendRequest: friendRequest,
+          // notification: newNotification,
+        },
+        "request created successfully",
+      ),
+    );
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
 });
 
 // ******accept friend request **** */
@@ -93,100 +124,97 @@ const acceptFriendRequest = AsyncHandler(async (req, res) => {
   const globalNameSpace = getGlobalNamespace();
   const userId = req.user?._id;
   if (!userId) throw new ApiError(402, "unauthorised action");
+
   const { friendRequestId } = req.params;
   if (!friendRequestId.trim())
     throw new ApiError(400, "request id not available at the moment");
   if (!mongoose.Types.ObjectId.isValid(friendRequestId))
     throw new ApiError(500, "invalid request id");
-  const acceptedRequest = await FriendRequest.findByIdAndUpdate(
-    new mongoose.Types.ObjectId(friendRequestId),
-    {
-      $set: {
-        status: "accepted",
-      },
-    },
-    {
-      new: true,
-    }
-  );
-  if (!acceptedRequest)
-    throw new ApiError(500, "something went wrong in accept friend request");
-  // // along with it marking is read of friendRequest user true after accepting the request as dono saath me ho raha hai
-  // const markIsReadTrue = await Notification.findOneAndUpdate(
-  //   {
-  //     friendRequestId: friendRequestId,
-  //   },
-  //   {
-  //     $set: {
-  //       isRead: true,
-  //     },
-  //   },
-  //   { new: true }
-  // );
-  // if (!markIsReadTrue)
-  //   throw new ApiError("Unable to mark the notification readStatus");
-  // create or update a friends document , ye kaam request accept hone par hogi
-  const newFriends = await Friend.create({
-    initialUser: acceptedRequest?.senderId, // jisne requsets bheja
-    addedUser: userId, // jisko request bheja
-  });
-  if (!newFriends)
-    throw new ApiError(500, "something went wrong in creating friends ");
-  // add each other in each others contact;;
-  const addUser1contact = await User.findByIdAndUpdate(userId, {
-    $push: {
-      contacts: acceptedRequest?.senderId,
-    },
-  });
-  if (!addUser1contact)
-    throw new ApiError(
-      500,
-      "something went wrong in adding  sender in your contact"
-    );
-  const addUser2contact = await User.findByIdAndUpdate(
-    acceptedRequest?.senderId,
-    {
-      $push: {
-        contacts: userId,
-      },
-    }
-  );
-  if (!addUser2contact)
-    throw new ApiError(
-      500,
-      "something went wrong in adding you in sender's contact"
-    );
-  const friendRequestAcceptedNotification = await Notification.create({
-    sender: userId,
-    receiver: acceptedRequest?.senderId,
-    content: "friend requested accepted  ...!",
-    service: "friendRequestAccept",
-  });
-  if (!friendRequestAcceptedNotification)
-    throw new ApiError(500, "unable to generate accepted requsest");
-  const acceptFriensRequestChannel = acceptedRequest?.senderId.toString();
-  globalNameSpace
-    .to(acceptFriensRequestChannel)
-    .emit("friend_request_acceptd_notofication", {
-      friendRequestAcceptedNotification,
-    });
-  globalNameSpace
-    .to(acceptedRequest?.senderId)
-    .emit("friend_request_acceptd", { friendRequestData: acceptedRequest });
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const acceptedRequest = await FriendRequest.findByIdAndUpdate(
+      new mongoose.Types.ObjectId(friendRequestId),
       {
-        requestStatus: acceptedRequest
-          ? "accepted"
-          : "not-accepted or rejected",
-        friendRequestData: acceptedRequest,
-        friend: newFriends,
+        $set: {
+          status: "accepted",
+        },
       },
-      "friend request accepted successFully"
-    )
-  );
+      {
+        new: true,
+        session,
+      },
+    );
+    if (acceptedRequest.receiverId.toString() === userId.toString()) {
+      const [newFriends] = await Friend.create(
+        [
+          {
+            initialUser: acceptedRequest?.senderId,
+            addedUser: userId,
+          },
+        ],
+        { session },
+      );
+      const addUser1contact = await User.findByIdAndUpdate(
+        userId,
+        {
+          $push: {
+            contacts: acceptedRequest?.senderId,
+          },
+        },
+        { session },
+      );
+      const addUser2contact = await User.findByIdAndUpdate(
+        acceptedRequest?.senderId,
+        {
+          $push: {
+            contacts: userId,
+          },
+        },
+        { session },
+      );
+      const [friendRequestAcceptedNotification] = await Notification.create(
+        [
+          {
+            sender: userId,
+            receiver: acceptedRequest?.senderId,
+            content: "friend requested accepted  ...!",
+            service: "friendRequestAccept",
+          },
+        ],
+        { session },
+      );
+      await session.commitTransaction();
+      const acceptFriensRequestChannel = acceptedRequest?.senderId.toString();
+      globalNameSpace
+        .to(acceptFriensRequestChannel)
+        .emit("friend_request_acceptd_notofication", {
+          friendRequestAcceptedNotification,
+        });
+      globalNameSpace
+        .to(acceptedRequest?.senderId)
+        .emit("friend_request_acceptd", { friendRequestData: acceptedRequest });
+
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          {
+            requestStatus: acceptedRequest
+              ? "accepted"
+              : "not-accepted or rejected",
+            friendRequestData: acceptedRequest,
+            friend: newFriends,
+          },
+          "friend request accepted successFully",
+        ),
+      );
+    } else {
+      throw new ApiError(400, "you are not authorised to accept this request");
+    }
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+  }
 });
 // check if the request is accepted or not
 const checkIsFriendRequestAccepted = AsyncHandler(async (req, res) => {
@@ -196,14 +224,14 @@ const checkIsFriendRequestAccepted = AsyncHandler(async (req, res) => {
   if (!friendRequestId.trim() || mongoose.Types.ObjectId(friendRequestId))
     throw new ApiError(500, "invalid friendRequest id");
   const currentRequestStatus = await FriendRequest.findById(
-    new mongoose.Types.ObjectId(friendRequestId)
+    new mongoose.Types.ObjectId(friendRequestId),
   )?.status;
   if (!currentRequestStatus)
     throw new ApiError(500, "problem in checking status at the moment");
   return res
     .status(200)
     .json(
-      new ApiResponse(200, currentRequestStatus, "status fetched succssfully!")
+      new ApiResponse(200, currentRequestStatus, "status fetched succssfully!"),
     );
 });
 
@@ -245,7 +273,7 @@ const getAllFriendRequest = AsyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, requests, "friend requests fetched successfully")
+      new ApiResponse(200, requests, "friend requests fetched successfully"),
     );
 });
 
@@ -270,7 +298,7 @@ const rejectFriendRequest = AsyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
   if (!rejectectedFriendrequest)
     throw new ApiError(500, "error in rejecting friendRequest");
@@ -287,7 +315,11 @@ const rejectFriendRequest = AsyncHandler(async (req, res) => {
   globalNameSpace
     .to(notificationChannel)
     .emit("rejected_friend_request", { rejectionNotification });
-    res.status(200).json(new ApiResponse(200,rejectFriendRequest,"request rejected successfuly"))
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, rejectFriendRequest, "request rejected successfuly"),
+    );
 });
 
 export {
@@ -295,5 +327,5 @@ export {
   acceptFriendRequest,
   checkIsFriendRequestAccepted,
   getAllFriendRequest,
-  rejectFriendRequest
+  rejectFriendRequest,
 };

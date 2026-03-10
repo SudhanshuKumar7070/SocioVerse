@@ -9,7 +9,7 @@ export const verifyJWT = AsyncHandler(async (req, res, next) => {
     req.cookies.accessToken ||
     req.header("Authorisation")?.replace("Bearer ", "");
   if (!currentUserJWTtoken) throw new ApiError(402, " accessToken not availabe");
-     console.log('accessTokenCheck::', currentUserJWTtoken);
+    //  console.log('accessTokenCheck::', currentUserJWTtoken);
      
   // decode the access token
   const decodedData = jwt.verify(
