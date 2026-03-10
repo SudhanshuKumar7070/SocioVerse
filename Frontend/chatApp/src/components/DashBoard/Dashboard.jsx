@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import CreatePostComponent from "./PostCreate/CreatePostComponent.jsx";
 import { ToastContainer } from "react-toastify";
 
+
 function Dashboard() {
   const Url = import.meta.env.VITE_API_URL;
   const [tweets, setTweets] = useState([]);
@@ -47,6 +48,7 @@ const navigate = useNavigate();
   useEffect(()=>{
      const fetchData = async()=>{
       try{
+     
   const res = await axios.get(`http://localhost:3000/api/v1/user/user_data/${user_Id}`,{withCredentials:true})
   console.log("check what we getting at follower::", res)
    if(!res){
@@ -81,33 +83,8 @@ const navigate = useNavigate();
     getChatMessage();
   }, []);
    console.log(follower)
-  //  handle like status of the user
-  // const isContentLiked = async(tweetId)=>{
-  //   try{
-  //   const isLiked  =await axios.get(`${Url}/like/isContentLiked/tweet/${tweetId}`,{withCredentials:true});
-     
-  //    if( isLiked.data.liked === false){
-  //     return false;
-  //    }
-  //    else if(isLiked.data.liked === true){
-  //     return true;
-  //    }
-  //   }
-  //   catch(err){
-  //     console.log("error occured in checking like status", err)
-  //   }
-  // }
-//  const  newDate = (currentDate)=>{
-//    const updatedDate = new Date(currentDate);
-//    const timeAgo =formatDistanceToNow(updatedDate, { addSuffix: true });
-//    return timeAgo;
-//  } ------> will done on tweetCard page itself 
-
-//  useEffect  ckeck is the tweet kiked or not
-// useEffect(()=>{
-//   const isTweetLiked =
-// },[])
-// if(!_id)
+// method to get notification for notification
+ 
   return (
     <div className="flex flex-col md:grid md:grid-cols-12 gap-1 min-h-[100dvh] w-full overflow-x-hidden relative pb-16 md:pb-0">
       {/* <ToastContainer/> */}

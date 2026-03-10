@@ -7,7 +7,9 @@ import Button from "./Button";
 import { login } from "../store/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-
+import { getDeviceInfo } from "../Config/userAgent";
+import { messaging } from "../Config/firebase.config.js";
+import { getToken } from "firebase/messaging";
 function Login() {
   const navigate = useNavigate();
   const Url = import.meta.env.VITE_API_URL;
@@ -17,7 +19,11 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const storeData = useSelector((state) => state.auth.userData);
-
+  const deviceData = getDeviceInfo();
+  const fcmToken = useSelector(
+    (state) => state.currentDeviceToken.currentDeviceToken,
+  );
+  //  console.log(" check fcm token :: ",fcmToken);
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -25,7 +31,7 @@ function Login() {
       const response = await axios.post(
         `${Url}/auth/login`,
         { email: userEmail, password },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.data) {
@@ -39,8 +45,39 @@ function Login() {
           }),
           setTokens({
             refreshToken: response.data.response.RefreshToken,
-          })
+          }),
         );
+      }
+      console.log("data getting of getData method::;", deviceData);
+      // Get FCM token - use Redux value or fetch directly as fallback
+      let currentFcmToken = fcmToken;
+      if (!currentFcmToken) {
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            currentFcmToken = await getToken(messaging, {
+              vapidKey:
+                "BEvQqFWDCG8dgBnaKuwJZKiSKQQeN1ZMwbi7G63oXVQbuzJDP2xSK4sCO87lR629girpftLuD0m5K083Z9_j2AQ",
+            });
+          }
+        } catch (tokenErr) {
+          console.log("Could not get FCM token:", tokenErr);
+        }
+      }
+      if (currentFcmToken) {
+        const fcmTokenInitialisation = await axios.post(
+          `${Url}/auth/setFcmToken`,
+          {
+            deviceName: deviceData.device || "Desktop",
+            fcmToken: currentFcmToken,
+            device: deviceData.browser,
+          },
+          { withCredentials: true },
+        );
+        if (!fcmTokenInitialisation)
+          throw new Error("error in fcm token post route at front end ");
+      } else {
+        console.warn("FCM token not available, skipping token registration");
       }
     } catch (error) {
       console.error("Error logging in:", error.response);
@@ -56,10 +93,11 @@ function Login() {
 
   return (
     <div className="flex items-center justify-center min-h-[100dvh] px-4 w-full  bg-gradient-to-r from-slate-900 to-slate-700">
-      <div className="flex flex-col items-center w-full sm:w-[80vw] md:w-[60vw] lg:w-[35vw] p-8 md:p-10 rounded-3xl 
+      <div
+        className="flex flex-col items-center w-full sm:w-[80vw] md:w-[60vw] lg:w-[35vw] p-8 md:p-10 rounded-3xl 
         shadow-[0_8px_30px_rgb(0,0,0,0.05)] border border-slate-100/50 
-        bg-white mb-10 overflow-hidden relative">
-        
+        bg-white mb-10 overflow-hidden relative"
+      >
         {/* Title */}
         <h2 className="text-3xl font-extrabold mb-8 text-neutral-800 font-poppins text-center tracking-tight">
           Welcome Back

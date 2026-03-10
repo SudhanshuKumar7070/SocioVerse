@@ -17,9 +17,9 @@ function LeftSideBarUserProfile({followers=0 , followings= 0}) {
             }}
             >
               <img
-                src={currentUserData.profilePicture}
+                src={currentUserData?.profilePicture || "/default-avatar.png"}
                 className="h-full w-full object-cover"
-                alt={`${currentUserData.fullName}'s profile`}
+                alt={`${currentUserData?.fullName || "User"}'s profile`}
                 
               />
             </div>
@@ -30,8 +30,8 @@ function LeftSideBarUserProfile({followers=0 , followings= 0}) {
 
        {/* User Identity */}
        <div className="text-center px-4 flex justify-center items-center flex-col w-full">
-          <h1 className="text-xl font-bold font-montserrat text-blue-500 ">{currentUserData.fullName}</h1>
-          <p className=" text-sm text-blue-300 font-montserrat">@{currentUserData.userName}</p>
+          <h1 className="text-xl font-bold font-montserrat text-blue-500 ">{currentUserData?.fullName || "User"}</h1>
+          <p className=" text-sm text-blue-300 font-montserrat">@{currentUserData?.userName || "username"}</p>
         </div>
        
         <div className="flex mb-4 pb-4 ">

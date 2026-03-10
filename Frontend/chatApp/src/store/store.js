@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from "./authSlice.js"
 import  userUrlReducer from "./systemsetupSlice.js"
 import convoReducer from "./conversationSlice.js"
+import currentDeviceTokenReducer from "./currentDeviceToken.js"
 import {persistStore,persistReducer} from 'redux-persist'
 import tweetTextContentReducer from "./tweetContentSlice.js"
 import storage from 'redux-persist/lib/storage' // defaults to localStorage for web
@@ -22,7 +23,8 @@ const store = configureStore({
     auth:authReducer,
     conversation: persistedConvoReducer,
     userUrl:userUrlReducer,
-    tweetTextContent:tweetTextContentReducer
+    tweetTextContent:tweetTextContentReducer,
+    currentDeviceToken:currentDeviceTokenReducer
   },
   middleware:(getDefaultMiddleware)=> getDefaultMiddleware({
     serializableCheck: false,

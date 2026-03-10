@@ -79,7 +79,7 @@ function Notifications() {
         throw new Error("something went wrong in accepting friend request");
       return acceptRequest;
     } catch (err) {
-      console.log("err occured in accepting friend request");
+      console.log("err occured in accepting friend request",err);
     }
   };
   // method for rejecting request
@@ -163,7 +163,7 @@ function Notifications() {
                       <button
                         className="font-poppins text-xs sm:text-sm px-4 py-2 rounded-lg shadow-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold hover:bg-emerald-500 hover:text-white transition-all duration-200"
                         onClick={async() => {
-                          const data = await acceptFriendRequest(notif?.friendRequestId);
+                          const data = await acceptFriendRequest(notif?.sourceId);
                           const readResponse = await updateIsReadNotification(notif?._id);
                           if(readResponse) setRefreshNotificationFetch(prev => !prev);
                           if (data) setRefreshNotificationFetch(prev => !prev);
@@ -174,7 +174,7 @@ function Notifications() {
                       <button 
                         className="font-poppins text-xs sm:text-sm px-4 py-2 rounded-lg shadow-md bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold hover:bg-rose-500 hover:text-white transition-all duration-200" 
                         onClick={async()=>{
-                           const rejectResponse = await rejectFriendRequest(notif?.friendRequestId);
+                           const rejectResponse = await rejectFriendRequest(notif?.sourceId);
                            if(rejectResponse) setRefreshNotificationFetch(prev => !prev);
                            const readResponse = await updateIsReadNotification(notif?._id);
                            if(readResponse) setRefreshNotificationFetch(prev => !prev);
