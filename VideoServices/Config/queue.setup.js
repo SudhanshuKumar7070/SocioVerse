@@ -59,10 +59,15 @@ export const videoTranscoder = new Worker(
 
           // ✅ FIXED: Read file data and pass correct parameters
           const segmentData = readFileSync(localSegmentPath);
+          console.log("===============================segment data hai kya -->", segmentData)
+          console.log("ckeck simultaneously remote folder = ", remoteFolder)
+           console.log(' what about  segmentName == ' , segmentName)
           const supaBaseResponse = await uploadContent(
             segmentData,
             `${remoteFolder}/${segmentName}`,
           );
+
+          console.log("---------------------> check supabase response for video upload------------------>",supaBaseResponse)
 
           if (!supaBaseResponse)
             throw new Error(
@@ -85,7 +90,7 @@ export const videoTranscoder = new Worker(
 
         // 5. Get public URL and save metadata
         const { data } = supabase.storage
-          .from("socioverse-videostreaming")
+          .from("socioVerse_videoStreaming")
           .getPublicUrl(`${remoteFolder}/stream.m3u8`);
 
         const videoUrl = data.publicUrl;
@@ -101,6 +106,9 @@ export const videoTranscoder = new Worker(
         });
 
         console.log("Video uploaded with HLS URL:", videoUrl);
+
+        fs.unlinkSync(localVideoPath);
+        console.log("Local video deleted");
         console.log("Database record created:", newVideo._id);
       } catch (uploadError) {
         console.error("Upload or database error:", uploadError);

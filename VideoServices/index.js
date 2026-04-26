@@ -1,10 +1,11 @@
 import express from "express";
-import { createBucket,uploadContent } from './supabase.setup.js';
+// createBucket: one-time setup util — call manually if bucket doesn't exist yet
+// uploadContent: used internally in queue.setup.js — no need to import here
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 // import { newFireApp } from "./firebaseDb.setup.js";
-import { videoTranscoder, queueEvents } from "./queue.setup.js";
+import { videoTranscoder, queueEvents } from "./Config/queue.setup.js";
      
 // import { push, Database, getDatabase, ref,get } from "firebase/database";
 dotenv.config();

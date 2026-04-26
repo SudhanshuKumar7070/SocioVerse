@@ -1,15 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
 
- const supabaseApi_key = "https://ozkbzspjxysljtsuyrqq.supabase.co/storage/v1/s3";
-// const supabaseApi_key = process.env.SUPABASE_API_KEY;
-// const supabase_anon_key =process.env.SUPABASE_ANON_KEY;
-const supabase_anon_key ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96a2J6c3BqeHlzbGp0c3V5cnFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM2NDMwNjMsImV4cCI6MjA2OTIxOTA2M30.AuhqtkWXkiGMlSNG-05y3xw2_mOM_XnfcD0BZcf2NJA"
-export const supabase= createClient(
-supabaseApi_key,supabase_anon_key
+// ✅ CORRECT project URL — format: https://<ref>.supabase.co
+const supabase_endpoint = "https://smdwsiubqlgtipviftpw.supabase.co";
+
+// ⚠️  Use service_role key for server-side uploads — it bypasses RLS
+// Get it from: Supabase Dashboard → Project Settings → API → service_role (secret)
+const supabase_service_role_key = process.env.SUPABASE_SERVICE_ROLE_KEY ;
+
+export const supabase = createClient(
+  supabase_endpoint,
+  supabase_service_role_key,
+  { auth: { persistSession: false } }  // recommended for server-side clients
 )
+console.log("supabase instantized::",supabase)
 if(!supabase) throw new Error("supabase integration failed");
-console.log('supabase integtation',supabase);
+console.log("supabase integrated successfully")
 
 //  call supabase create function only when needed ,
  export const createBucket = async ()=>{
@@ -44,7 +50,7 @@ export const uploadContent = async (fileData, fileName) => {
         }
 
         const { data, error } = await supabase.storage
-            .from('socioverse-videostreaming')
+            .from('socioVerse_videoStreaming')
             .upload(fileName, fileData, {
                 cacheControl: '3600',
                 upsert: false

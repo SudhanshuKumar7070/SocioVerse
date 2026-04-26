@@ -18,7 +18,7 @@ function LeftSideBar() {
     {
       name: "Feeds",
       icon: <Rss className='text-sky-400' size={20} />,
-      link: "/feeds"
+      link: "/dashboard"
     },
     {
       name: "Reels",

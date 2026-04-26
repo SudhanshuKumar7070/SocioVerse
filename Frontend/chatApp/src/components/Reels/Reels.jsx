@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Logo from "../DashBoard/Logo.jsx";
 import LeftSideBar from "../DashBoard/LeftSideBar.jsx";
 import LeftSideBarUserProfile from "../DashBoard/LeftSideBarUserProfile.jsx";
@@ -10,10 +11,12 @@ import {
   ThumbsDown,
   MessageCircle,
   Info,
+  Plus,
 } from "lucide-react";
 import VideoPlayer from "./VideoSetup/VideoPlayer.jsx";
 
 function Reels() {
+  const navigate = useNavigate();
   const [res, setResponse] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -71,6 +74,7 @@ function Reels() {
         <div className="py-2 my-2">
           <LeftSideBar />
         </div>
+          
       </div>
 
       {/* Main Reels Content */}
@@ -79,6 +83,7 @@ function Reels() {
           {loading && res.length === 0 ? (
             /* Skeleton loader */
             <div className="flex flex-col gap-6">
+
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
@@ -159,6 +164,7 @@ function Reels() {
                           aria-label={label}
                           className="p-2.5 rounded-full bg-slate-800/70 backdrop-blur-md border border-slate-600/30 shadow-lg transition-all duration-300 ease-out hover:scale-110 hover:bg-sky-500/20 hover:border-sky-400/40 text-slate-300 hover:text-sky-300"
                         >
+
                           {icon}
                         </button>
                         {count !== undefined && count !== null && (
@@ -187,9 +193,50 @@ function Reels() {
           )}
         </div>
       </main>
-
+          
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
+
+      {/* ── Create Reel FAB ── */}
+      <style>{`
+        .create-reel-btn {
+          transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+        }
+        .create-reel-btn:hover {
+          transform: translateY(-2px) scale(1.03);
+          box-shadow: 0 0 16px 3px rgba(56,189,248,0.2), 0 6px 20px rgba(0,0,0,0.4);
+        }
+        .create-reel-btn:active {
+          transform: scale(0.97);
+        }
+        .fab-plus {
+          transition: transform 0.25s ease;
+        }
+        .create-reel-btn:hover .fab-plus {
+          transform: rotate(45deg);
+        }
+      `}</style>
+
+      <button
+        aria-label="Create a new Reel"
+        onClick={() => navigate("/reels/upload")}
+        className="create-reel-btn fixed bottom-24 md:bottom-8 right-6 md:right-10 z-50
+          flex items-center gap-2.5
+          px-5 py-3
+          font-poppins
+          rounded-full
+          bg-gradient-to-r from-sky-500/75 to-blue-600/75
+          backdrop-blur-md
+          border border-sky-400/30
+          text-white font-montserrat font-semibold text-sm tracking-wide
+          shadow-md shadow-sky-500/15
+          cursor-pointer select-none"
+      >
+        <span className="fab-plus flex items-center justify-center w-6 h-6 rounded-full bg-white/10 border border-white/20">
+          <Plus size={14} strokeWidth={2.5} className="text-white" />
+        </span>
+        <span className="hidden sm:inline">Create Reel</span>
+      </button>
     </div>
   );
 }

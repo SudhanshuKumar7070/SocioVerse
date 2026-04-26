@@ -25,6 +25,7 @@ import Form from "./components/BioComponent.jsx";
 import AddBio from "./components/AddBio.jsx";
 import Dashboard from "./components/DashBoard/Dashboard.jsx";
 import Reels from "./components/Reels/Reels.jsx";
+import VideoUpload from "./components/Reels/VideoUpload.jsx";
 import Feeds from "./components/Feeds/Feeds.jsx";
 import Friends from "./components/Friends/Friends.jsx";
 import Notifications from "./components/Notifications/Notifications.jsx";
@@ -106,6 +107,10 @@ const router = createBrowserRouter([
       {
         path: "/reels",
         element: <Reels />,
+      },
+      {
+        path: "/reels/upload",
+        element: <VideoUpload />,
       },
       {
         path: "/tweet/:tweet_id",
