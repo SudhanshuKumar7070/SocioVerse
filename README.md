@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="REF_3.png" alt="SocioVerse Logo" width="120" />
+  <img src="./Frontend/chatApp/src/components/DashBoard/logo for social media web app.png" alt="SocioVerse Logo" width="120" />
 </p>
 
 <h1 align="center">SocioVerse</h1>
