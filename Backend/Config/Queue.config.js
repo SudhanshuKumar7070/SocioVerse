@@ -1,10 +1,7 @@
 import {Queue, Worker} from "bullmq";
-import IORedis from "ioredis"
- export const connection = new IORedis({
-    host: "localhost",
-    port: 6379, 
-    maxRetriesPerRequest:null
-});
+import { redisClient } from "../server/redis.server.js";
+ export const connection = redisClient;
+
 
 export const   pushNotificationQueue = new Queue("pushNotificationQueue",{
     connection:connection,
