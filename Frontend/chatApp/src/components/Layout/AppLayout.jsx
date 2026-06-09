@@ -16,7 +16,7 @@ function AppLayout() {
       if (!userId) return;
       try {
         const res = await axios.get(
-          `http://localhost:3000/api/v1/user/user_data/${userId}`,
+          `${import.meta.env.VITE_API_URL}/user/user_data/${userId}`,
           { withCredentials: true }
         );
         if (res?.data?.response?.[0]) {

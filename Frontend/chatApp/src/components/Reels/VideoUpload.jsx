@@ -89,7 +89,7 @@ export default function VideoUpload() {
     setErrorMsg("");
 
     try {
-      await axios.post("http://localhost:3002/api/v1/video/upload", formData, {
+      await axios.post(`${import.meta.env.VITE_VIDEO_SERVICE_URL}/video/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (evt) => {
           const pct = Math.round((evt.loaded * 100) / evt.total);

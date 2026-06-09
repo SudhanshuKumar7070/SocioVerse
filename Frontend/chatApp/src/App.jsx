@@ -106,7 +106,7 @@ function App() {
   const get_Current_User = async () => {
     try {
       const user = await axios.get(
-        `http://localhost:3000/api/v1/user/current_user_data`,
+        `${import.meta.env.VITE_API_URL}/user/current_user_data`,
         { withCredentials: true },
       );
       if (!user) alert("user not fetched at moment");

@@ -21,7 +21,7 @@ function UserTweets() {
     try {
       console.log("Fetching tweet with ID:", tweet_id);
       const res = await axios.get(
-        `http://localhost:3000/api/v1/tweet/getTweetById/${tweet_id}`,
+        `${import.meta.env.VITE_API_URL}/tweet/getTweetById/${tweet_id}`,
         {
           withCredentials: true,
         }
@@ -45,7 +45,7 @@ function UserTweets() {
     setLoading(true);
     try {
       const tweetResponse = await axios.get(
-        `http://localhost:3000/api/v1/tweet/userTweets/${userId}`,{
+        `${import.meta.env.VITE_API_URL}/tweet/userTweets/${userId}`,{
           withCredentials:true
         }
       );

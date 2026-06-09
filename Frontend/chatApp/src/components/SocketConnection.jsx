@@ -14,8 +14,8 @@ import { useMemo } from 'react';
       }
         const SocketContext =  createContext(null);
       export  const SocketProvider =({children})=>{
-          const socket = useMemo(()=>io("http://localhost:3000/chat"),[]);
-          const globalSocket =useMemo(()=>io("http://localhost:3000/global"),[]);
+          const socket = useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/chat`),[]);
+          const globalSocket =useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/global`),[]);
              return(
               <SocketContext.Provider value={[socket, globalSocket]}>
                      {children}

@@ -29,7 +29,7 @@ function Reels() {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:3002/api/v1/video/fetch?page=${page}&limit=5`
+        `${import.meta.env.VITE_VIDEO_SERVICE_URL}/video/fetch?page=${page}&limit=5`
       );
       const newData = response.data?.data || [];
       if (newData.length === 0) {

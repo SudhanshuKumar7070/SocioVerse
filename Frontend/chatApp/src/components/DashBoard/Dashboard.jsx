@@ -49,7 +49,7 @@ const navigate = useNavigate();
      const fetchData = async()=>{
       try{
      
-  const res = await axios.get(`http://localhost:3000/api/v1/user/user_data/${user_Id}`,{withCredentials:true})
+  const res = await axios.get(`${Url}/user/user_data/${user_Id}`,{withCredentials:true})
   console.log("check what we getting at follower::", res)
    if(!res){
       throw new Error("unable to fetch user data");
