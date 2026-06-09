@@ -12,10 +12,7 @@ cloudinary.config({
        const response = await cloudinary.uploader.upload(localVideoPath,{
                 resource_type:"auto"
        })
-          console.log('response of uploaded file',response);
-          console.log('response url',response.url);
-          
-          
+
        return response
           
     }

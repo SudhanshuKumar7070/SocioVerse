@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./loadEnv.js"; // MUST be first — loads .env before any other module reads process.env
 import express from "express";
 
 // createBucket: one-time setup util — call manually if bucket doesn't exist yet

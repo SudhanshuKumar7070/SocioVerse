@@ -8,7 +8,27 @@ import IORedis from "ioredis";
 import { ReelVideo } from "../Db/Schema/videoSchema.js";
 import { videoTrancodingDLQ } from "./DLQ.setup.js";
 
-export const QueueConnection = new IORedis({ maxRetriesPerRequest: null });
+export const QueueConnection = new IORedis(process.env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+  tls: process.env.REDIS_URL?.startsWith('rediss://') ? {} : undefined,
+  retryStrategy(times) {
+    if (times > 10) {
+      console.log('❌ Redis (Queue): max reconnection attempts reached, stopping retries');
+      return null;
+    }
+    return Math.min(times * 200, 5000);
+  },
+});
+
+let hasQueueConnected = false;
+QueueConnection.on("ready", () => {
+  if (!hasQueueConnected) {
+    console.log('✅ Connected to Redis (Queue) successfully');
+    hasQueueConnected = true;
+  }
+});
+QueueConnection.on("error", (err) => console.log('❌ Redis (Queue) error:', err.message));
+
 export const videoQueue = new Queue("videoQueue", {
   connection: QueueConnection,
   defaultJobOptions: {
@@ -59,21 +79,15 @@ export const videoTranscoder = new Worker(
 
           // ✅ FIXED: Read file data and pass correct parameters
           const segmentData = readFileSync(localSegmentPath);
-          console.log("===============================segment data hai kya -->", segmentData)
-          console.log("ckeck simultaneously remote folder = ", remoteFolder)
-           console.log(' what about  segmentName == ' , segmentName)
           const supaBaseResponse = await uploadContent(
             segmentData,
             `${remoteFolder}/${segmentName}`,
           );
 
-          console.log("---------------------> check supabase response for video upload------------------>",supaBaseResponse)
-
           if (!supaBaseResponse)
             throw new Error(
               "Something went wrong uploading segment to Supabase",
             );
-          console.log("Video segment uploaded:", segmentName);
         }
 
         // 4. Upload playlist to Supabase

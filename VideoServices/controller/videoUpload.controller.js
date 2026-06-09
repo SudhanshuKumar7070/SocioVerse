@@ -9,7 +9,6 @@ export const processVideo = (req, res) => {
   const { title, description } = req.body;
   if (!title.trim()) throw new Error("title is required");
 
-  console.log("title:", title);
 
   const localVideoPath = req.file.path;
   if (!localVideoPath) throw new Error("file not uploaded");

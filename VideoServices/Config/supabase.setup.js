@@ -7,16 +7,13 @@ const supabase_endpoint = "https://smdwsiubqlgtipviftpw.supabase.co";
 // ⚠️  Use service_role key for server-side uploads — it bypasses RLS
 // Get it from: Supabase Dashboard → Project Settings → API → service_role (secret)
 const supabase_service_role_key = process.env.SUPABASE_SERVICE_ROLE_KEY ;
-console.log("supabase_service_role_key::",supabase_service_role_key)
 
 export const supabase = createClient(
   supabase_endpoint,
   supabase_service_role_key,
   { auth: { persistSession: false } }  // recommended for server-side clients
 )
-console.log("supabase instantized::",supabase)
 if(!supabase) throw new Error("supabase integration failed");
-console.log("supabase integrated successfully")
 
 //  call supabase create function only when needed ,
  export const createBucket = async ()=>{
@@ -24,7 +21,6 @@ console.log("supabase integrated successfully")
 const supaBucket = await supabase.storage.createBucket('socioverse-videostreaming',{
     public:true
 });
-console.log('supaBucket is creating or not:',supaBucket);
 
 if(!supaBucket) throw new Error('bucket creation failed');
 return supaBucket;
@@ -62,7 +58,6 @@ export const uploadContent = async (fileData, fileName) => {
             return null;
         }
 
-        console.log('Upload successful:', data);
         return data;
         
     } catch (err) {
