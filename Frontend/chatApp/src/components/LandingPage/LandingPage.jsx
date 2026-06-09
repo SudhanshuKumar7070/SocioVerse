@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import  heroImage from "../DashBoard/logo for social media web app.png"
-import homeImg from "../../../public/influencer-dancing-posting-social-media_23-2149194124.avif"
+
 const LandingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-900/10 via-blue-500 to-blue-900/10 flex flex-col items-center justify-center px-6">
@@ -28,7 +28,7 @@ const LandingPage = () => {
         <div className="md:w-1/2">
           <img
             // src="https://img.freepik.com/free-vector/flat-illustration-social-media-day-celebration_23-2150339964.jpg?semt=ais_incoming&w=740&q=80"// Truncated for clarity
-            src={homeImg}
+            src="/influencer-dancing-posting-social-media_23-2149194124.avif"
             alt="Chat illustration"
             className="w-full h-auto  rounded-3xl shadow-xl"
           />
