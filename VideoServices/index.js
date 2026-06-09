@@ -1,14 +1,16 @@
+import "dotenv/config";
 import express from "express";
+
 // createBucket: one-time setup util — call manually if bucket doesn't exist yet
 // uploadContent: used internally in queue.setup.js — no need to import here
 import path from "path";
 import cors from "cors";
-import dotenv from "dotenv";
+
 // import { newFireApp } from "./firebaseDb.setup.js";
 import { videoTranscoder, queueEvents } from "./Config/queue.setup.js";
      
 // import { push, Database, getDatabase, ref,get } from "firebase/database";
-dotenv.config();
+
 import videoRoute from "./Routes/videoUpload.route.js";
 import fetchVideoRoute from "./Routes/videoFetch.route.js";
 import {router }from "./Routes/videoLike.routes.js"

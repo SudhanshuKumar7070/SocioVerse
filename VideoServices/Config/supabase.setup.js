@@ -7,6 +7,7 @@ const supabase_endpoint = "https://smdwsiubqlgtipviftpw.supabase.co";
 // ⚠️  Use service_role key for server-side uploads — it bypasses RLS
 // Get it from: Supabase Dashboard → Project Settings → API → service_role (secret)
 const supabase_service_role_key = process.env.SUPABASE_SERVICE_ROLE_KEY ;
+console.log("supabase_service_role_key::",supabase_service_role_key)
 
 export const supabase = createClient(
   supabase_endpoint,
