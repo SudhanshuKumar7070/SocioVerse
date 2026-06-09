@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import "dotenv/config";
+
 import { initiliseGlobalNameSpace } from "./globalNameSpace.js";
 // import { subscriber,publisher } from "./redis.server.js";
 import { Conversation } from "../Models/conversation.model.js";

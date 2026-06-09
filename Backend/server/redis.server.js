@@ -1,58 +1,36 @@
 import Redis from 'ioredis'
-import redis from 'redis'
 
-const redisClient  = Redis.createClient({
-   host:"127.0.0.1",
-    port:6379
-})
-redisClient.on("connect",()=>{
-  console.log('server connected to redis successfully');
-  
-})
-redisClient.on("error",(err)=>{
-  console.log('something went wrong in error connection , error = ', err);
-  
-})
-  // server must be a publisher of notifications
-//   const publisher = redis.createClient({
-//     socket: {
-//       host: 'localhost', 
-//       port:6379,
-//     },
-//   });
-  
-//   const subscriber = redis.createClient({
-//     socket: {
-//       host: 'localhost',
-//       port: 6379,
-//     },
-//   });
-  
-   
-//   const initialiseRedis =async()=>{
-// try{
-// await publisher.connect();
-// await subscriber.connect();
-// console.log('successfull connection');
+const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 
-// }catch(err){
-//   console.log('error at redis', err);
-  
-// }
- 
-//   }
-//   initialiseRedis();
+// Upstash requires TLS — ensure we use rediss:// protocol
+const redisClient = new Redis(REDIS_URL, {
+  tls: REDIS_URL.includes('upstash.io') ? {} : undefined,
+  maxRetriesPerRequest: null,
+  retryStrategy(times) {
+    if (times > 10) {
+      console.log('❌ Redis: max reconnection attempts reached, stopping retries');
+      return null; // stop retrying
+    }
+    const delay = Math.min(times * 200, 5000);
+    return delay;
+  },
+});
 
-//   publisher.on("connect",()=>{
-//     console.log('publisher is connected to redis');
-//   })
+// Log only once on first successful connection
+let hasConnected = false;
+redisClient.on("ready", () => {
+  if (!hasConnected) {
+    console.log('✅ Connected to Redis successfully');
+    hasConnected = true;
+  }
+});
 
-//   subscriber.on("connect",()=>{
-//     console.log('subscriber is connected to redis');
-    
-//   })
- 
- 
+redisClient.on("error", (err) => {
+  console.log('❌ Redis connection error:', err.message);
+});
 
-//   export { publisher, subscriber}
-export {redisClient}
+redisClient.on("reconnecting", () => {
+  console.log('🔄 Redis reconnecting...');
+});
+
+export { redisClient }
