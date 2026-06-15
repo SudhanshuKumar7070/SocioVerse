@@ -217,7 +217,7 @@ const getAllTweets = AsyncHandler(async (req, res) => {
 
   const {
     page = 1,
-    limit = 10,
+    limit = 10000000,
 
     sortType = "asc",
     sortBy = "createdAt",
