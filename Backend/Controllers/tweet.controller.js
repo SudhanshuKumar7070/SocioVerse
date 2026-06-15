@@ -288,7 +288,8 @@ const getAllTweets = AsyncHandler(async (req, res) => {
         createdAt: 1,
       },
     },
-  ]).skip(skip);
+  ]);
+  // .skip(skip)
 
   if (!tweet) throw new ApiError(500, "error in fetching tweets !");
   return res
