@@ -225,7 +225,7 @@ const getAllTweets = AsyncHandler(async (req, res) => {
 
   const pageNo = parseInt(page) > 0 ? parseInt(page) : 1;
   // const limitNo = parseInt(limit) > 0 ? parseInt(limit) : 0;
-  const skip = (pageNo - 1) * limitNo;
+  // const skip = (pageNo - 1) * limitNo;
   const tweet = await Tweet.aggregate([
     {
       $sort: {
@@ -233,7 +233,7 @@ const getAllTweets = AsyncHandler(async (req, res) => {
       },
     },
     // Pagination
-    { $skip: skip },
+    // { $skip: skip },
     // { $limit: limitNo },
 
     {
