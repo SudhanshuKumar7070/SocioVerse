@@ -13,6 +13,12 @@ import commentRoute from "../Routes/comment.route.js"
 import notificationRoute from "../Routes/notification.routes.js"
 import friendRequestRoute from "../Routes/friendRequest.route.js"
 import likeRoute from "../Routes/like.route.js"
+app.use(cors(
+     {
+         origin: process.env.CORS_ORIGIN,
+         credentials:true
+     }
+))
 app.use(express.urlencoded({
     extended:true,
     limit:"16kb"
@@ -20,12 +26,6 @@ app.use(express.urlencoded({
 app.use(express.static("public"))
 app.use(express.json({limit:"10kb"}));
 app.use(cookieParser());
-app.use(cors(
-     {
-         origin: process.env.CORS_ORIGIN,
-         credentials:true
-     }
-))
 app.use("/api/v1/auth",authRoutes);
 app.use("/api/v1/user",userRoutes);
 app.use("/api/v1/conversation",userConversation)
