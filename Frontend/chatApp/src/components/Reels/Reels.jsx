@@ -21,7 +21,9 @@ function Reels() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
   const observer = useRef();
+  const reelRefs = useRef([]);
 
   // Fetch API with pagination
   const fetchReels = useCallback(async () => {
@@ -60,6 +62,27 @@ function Reels() {
     },
     [loading, hasMore]
   );
+
+  // Track which reel is visible on screen — unmute only that one
+  useEffect(() => {
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = Number(entry.target.dataset.reelIndex);
+            if (!isNaN(index)) setActiveIndex(index);
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+
+    reelRefs.current.forEach((el) => {
+      if (el) visibilityObserver.observe(el);
+    });
+
+    return () => visibilityObserver.disconnect();
+  }, [res]);
 
   useEffect(() => {
     fetchReels();
@@ -104,12 +127,17 @@ function Reels() {
               return (
                 <div
                   key={el?._id || index}
-                  ref={isLast ? lastVideoRef : null}
+                  ref={(node) => {
+                    reelRefs.current[index] = node;
+                    if (isLast) lastVideoRef(node);
+                  }}
+                  data-reel-index={index}
                   className="snap-start relative w-full h-[85vh] mb-6 rounded-2xl overflow-hidden bg-black shadow-xl border border-slate-700/40"
                 >
                   {/* Video */}
                   <VideoPlayer
                     src={el?.hlsPath}
+                    isVisible={index === activeIndex}
                     className="w-full h-full object-cover"
                   />
 

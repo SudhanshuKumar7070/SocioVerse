@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 
-const VideoPlayer = ({ src }) => {
+const VideoPlayer = ({ src, isVisible }) => {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
@@ -12,8 +12,8 @@ const VideoPlayer = ({ src }) => {
 
       playerRef.current = videojs(videoElement, {
         controls: true,
-        autoplay: true,
-        muted: false,
+        autoplay: false,
+        muted: true,
         loop: true,
         fluid: true,
         preload: 'auto',
@@ -39,6 +39,24 @@ const VideoPlayer = ({ src }) => {
       }
     };
   }, []);
+
+  // Control play/pause and mute based on visibility
+  useEffect(() => {
+    const player = playerRef.current;
+    if (!player) return;
+
+    if (isVisible) {
+      player.muted(false);
+      player.play().catch(() => {
+        // Autoplay with sound blocked by browser — fallback to muted autoplay
+        player.muted(true);
+        player.play().catch(() => {});
+      });
+    } else {
+      player.muted(true);
+      player.pause();
+    }
+  }, [isVisible]);
 
   useEffect(() => {
     if (playerRef.current && src && src.trim()) {
