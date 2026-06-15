@@ -217,14 +217,14 @@ const getAllTweets = AsyncHandler(async (req, res) => {
 
   const {
     page = 1,
-    limit = 10000000,
+    limit = 0,
 
     sortType = "asc",
     sortBy = "createdAt",
   } = req.query;
 
   const pageNo = parseInt(page) > 0 ? parseInt(page) : 1;
-  const limitNo = parseInt(limit) > 0 ? parseInt(limit) : 10;
+  const limitNo = parseInt(limit) > 0 ? parseInt(limit) : 0;
   const skip = (pageNo - 1) * limitNo;
   const tweet = await Tweet.aggregate([
     {
