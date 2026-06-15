@@ -14,8 +14,14 @@ import { useMemo } from 'react';
       }
         const SocketContext =  createContext(null);
       export  const SocketProvider =({children})=>{
-          const socket = useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/chat`),[]);
-          const globalSocket =useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/global`),[]);
+          const socket = useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/chat`, {
+            withCredentials: true,
+            transports: ["websocket", "polling"],
+          }),[]);
+          const globalSocket =useMemo(()=>io(`${import.meta.env.VITE_SOCKET_URL}/global`, {
+            withCredentials: true,
+            transports: ["websocket", "polling"],
+          }),[]);
              return(
               <SocketContext.Provider value={[socket, globalSocket]}>
                      {children}
