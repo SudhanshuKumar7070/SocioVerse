@@ -63,8 +63,9 @@ app.get("/hi", (req, res) => {
 });
 
 connectDb().then(() => {
-  app.listen(3002, () => {
-    console.log("✅ App is listening at port: 3002");
+  const port = process.env.PORT || 3002;
+  app.listen(port, () => {
+    console.log(`✅ App is listening at port: ${port}`);
   });
 });
 // Start server

@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync } from "fs"; // Added readFileSync
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from "fs";
 import { supabase, uploadContent } from "./supabase.setup.js";
 import path from "path";
 // import { bucket } from './firebaseDb.setup.js';
@@ -7,6 +7,7 @@ import { Queue, Worker, QueueEvents } from "bullmq";
 import IORedis from "ioredis";
 import { ReelVideo } from "../Db/Schema/videoSchema.js";
 import { videoTrancodingDLQ } from "./DLQ.setup.js";
+import ffmpegPath from "ffmpeg-static";
 
 export const QueueConnection = new IORedis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
@@ -49,6 +50,15 @@ queueEvents.on("progress", ({ jobId, data }) =>
   console.log(` Job ${jobId} progress:`, data),
 );
 
+// Helper: promisify exec so the worker can properly await FFmpeg
+const execAsync = (cmd) =>
+  new Promise((resolve, reject) => {
+    exec(cmd, (err, stdout, stderr) => {
+      if (err) return reject(err);
+      resolve({ stdout, stderr });
+    });
+  });
+
 export const videoTranscoder = new Worker(
   "videoQueue",
   async (job) => {
@@ -59,76 +69,67 @@ export const videoTranscoder = new Worker(
     // 1. Ensure local HLS directory exists
     if (!existsSync(hlsLocalDir)) mkdirSync(hlsLocalDir, { recursive: true });
 
-    // 2. Run FFmpeg
+    // 2. Run FFmpeg (using ffmpeg-static so it works on Render too)
     const playlistLocal = path.join(hlsLocalDir, "index.m3u8");
-    const ffmpegCmd = `ffmpeg -i "${localVideoPath}" -codec:v libx264 -codec:a aac -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${hlsLocalDir}/segment%03d.ts" -start_number 0 "${playlistLocal}"`;
+    const ffmpegBin = ffmpegPath || "ffmpeg";
+    const ffmpegCmd = `"${ffmpegBin}" -i "${localVideoPath}" -codec:v libx264 -codec:a aac -hls_time 10 -hls_playlist_type vod -hls_segment_filename "${hlsLocalDir}/segment%03d.ts" -start_number 0 "${playlistLocal}"`;
 
-    exec(ffmpegCmd, async (err, stdout, stderr) => {
-      if (err) return console.error("FFmpeg error:", err);
+    // Await FFmpeg — this ensures BullMQ knows if the job succeeds or fails
+    await execAsync(ffmpegCmd);
+    console.log("FFmpeg completed successfully");
 
-      console.log("FFmpeg completed successfully");
+    // 3. Upload segments to Supabase
+    const segmentFiles = readdirSync(hlsLocalDir).filter((f) =>
+      f.endsWith(".ts"),
+    );
 
-      try {
-        // 3. Upload segments to Supabase
-        const segmentFiles = readdirSync(hlsLocalDir).filter((f) =>
-          f.endsWith(".ts"),
+    for (const segmentName of segmentFiles) {
+      const localSegmentPath = path.join(hlsLocalDir, segmentName);
+      const segmentData = readFileSync(localSegmentPath);
+      const supaBaseResponse = await uploadContent(
+        segmentData,
+        `${remoteFolder}/${segmentName}`,
+      );
+
+      if (!supaBaseResponse)
+        throw new Error(
+          "Something went wrong uploading segment to Supabase",
         );
+    }
 
-        for (const segmentName of segmentFiles) {
-          const localSegmentPath = path.join(hlsLocalDir, segmentName);
+    // 4. Upload playlist to Supabase
+    const playlistData = readFileSync(playlistLocal);
+    const remotePlaylistResponse = await uploadContent(
+      playlistData,
+      `${remoteFolder}/stream.m3u8`,
+    );
 
-          // ✅ FIXED: Read file data and pass correct parameters
-          const segmentData = readFileSync(localSegmentPath);
-          const supaBaseResponse = await uploadContent(
-            segmentData,
-            `${remoteFolder}/${segmentName}`,
-          );
+    if (!remotePlaylistResponse)
+      throw new Error("Playlist file not uploaded accurately");
+    console.log("Remote playlist uploaded:", remotePlaylistResponse);
 
-          if (!supaBaseResponse)
-            throw new Error(
-              "Something went wrong uploading segment to Supabase",
-            );
-        }
+    // 5. Get public URL and save metadata
+    const { data } = supabase.storage
+      .from("socioVerse_videoStreaming")
+      .getPublicUrl(`${remoteFolder}/stream.m3u8`);
 
-        // 4. Upload playlist to Supabase
-        // ✅ FIXED: Use the correct local playlist path
-        const playlistData = readFileSync(playlistLocal);
-        const remotePlaylistResponse = await uploadContent(
-          playlistData,
-          `${remoteFolder}/stream.m3u8`,
-        );
+    const videoUrl = data.publicUrl;
+    console.log(
+      "this will be the public url for video playing ::",
+      videoUrl,
+    );
 
-        if (!remotePlaylistResponse)
-          throw new Error("Playlist file not uploaded accurately");
-        console.log("Remote playlist uploaded:", remotePlaylistResponse);
-
-        // 5. Get public URL and save metadata
-        const { data } = supabase.storage
-          .from("socioVerse_videoStreaming")
-          .getPublicUrl(`${remoteFolder}/stream.m3u8`);
-
-        const videoUrl = data.publicUrl;
-        console.log(
-          "this will be the public url for video playing ::",
-          videoUrl,
-        );
-
-        const newVideo = await ReelVideo.create({
-          title,
-          originalFileName: localVideoPath,
-          hlsPath: videoUrl,
-        });
-
-        console.log("Video uploaded with HLS URL:", videoUrl);
-
-        fs.unlinkSync(localVideoPath);
-        console.log("Local video deleted");
-        console.log("Database record created:", newVideo._id);
-      } catch (uploadError) {
-        console.error("Upload or database error:", uploadError);
-        throw uploadError;
-      }
+    const newVideo = await ReelVideo.create({
+      title,
+      originalFileName: localVideoPath,
+      hlsPath: videoUrl,
     });
+
+    console.log("Video uploaded with HLS URL:", videoUrl);
+
+    unlinkSync(localVideoPath);
+    console.log("Local video deleted");
+    console.log("Database record created:", newVideo._id);
   },
   { connection: QueueConnection },
 );
