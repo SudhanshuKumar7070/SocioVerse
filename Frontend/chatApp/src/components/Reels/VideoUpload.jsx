@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Logo from "../DashBoard/Logo.jsx";
 import LeftSideBar from "../DashBoard/LeftSideBar.jsx";
 import LeftSideBarUserProfile from "../DashBoard/LeftSideBarUserProfile.jsx";
@@ -111,9 +113,21 @@ export default function VideoUpload() {
   useEffect(()=>{
     if(isSuccess){
       clearFile();
+      toast.success(
+        "\ud83c\udfac Video uploaded successfully! It's being processed and will appear in your feed in a few seconds.",
+        {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "dark",
+        }
+      );
       setTimeout(() => {
         navigate("/dashboard");
-      }, 2000);
+      }, 4000);
     }
   },[isSuccess])
 
@@ -357,6 +371,29 @@ export default function VideoUpload() {
 
       {/* ── Mobile Bottom Nav ── */}
       <MobileBottomNav />
+
+      {/* Toast notifications */}
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        toastStyle={{
+          background: "rgba(15, 23, 42, 0.95)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(56, 189, 248, 0.2)",
+          borderRadius: "0.75rem",
+          color: "#e2e8f0",
+          fontFamily: "'Montserrat', sans-serif",
+          fontSize: "0.875rem",
+        }}
+      />
     </div>
   );
 }
