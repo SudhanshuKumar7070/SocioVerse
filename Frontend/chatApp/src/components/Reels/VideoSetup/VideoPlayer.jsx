@@ -13,7 +13,7 @@ const VideoPlayer = ({ src }) => {
       playerRef.current = videojs(videoElement, {
         controls: true,
         autoplay: true,
-        muted: true,
+        muted: false,
         loop: true,
         fluid: true,
         preload: 'auto',
