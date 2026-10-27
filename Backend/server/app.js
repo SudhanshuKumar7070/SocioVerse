@@ -13,12 +13,24 @@ import commentRoute from "../Routes/comment.route.js"
 import notificationRoute from "../Routes/notification.routes.js"
 import friendRequestRoute from "../Routes/friendRequest.route.js"
 import likeRoute from "../Routes/like.route.js"
-app.use(cors(
-     {
-         origin: process.env.CORS_ORIGIN,
-         credentials:true
-     }
-))
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://socio-verse-mine.vercel.app"
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes("*")) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));
 app.use(express.urlencoded({
     extended:true,
     limit:"16kb"

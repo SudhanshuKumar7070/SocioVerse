@@ -147,23 +147,100 @@ const editTweetUrl = AsyncHandler(async (req, res) => {
 // get all tweets of logged in user ---->  ////////////////////   --------------- for current user dashboard
 const listAllTweetsOfUser = AsyncHandler(async (req, res) => {
   const userId = req.user._id;
-  if (!userId) throw new ApiError(400, " unathorised action");
+  if (!userId) throw new ApiError(400, "unauthorised action");
+
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const limit = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 50);
+  const skip = (page - 1) * limit;
+
+  const totalTweets = await Tweet.countDocuments({ userId });
+  const totalPages = Math.ceil(totalTweets / limit);
+  const hasNextPage = page < totalPages;
+
   const tweets = await Tweet.aggregate([
     {
       $match: {
         userId: userId,
       },
+    },
+    {
       $sort: {
         createdAt: -1,
       },
     },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "UserData",
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweets",
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isLikedByUser: {
+          $in: [
+            userId,
+            {
+              $map: {
+                input: "$likes",
+                as: "l",
+                in: "$l.owner",
+              },
+            },
+          ],
+        },
+        likeCount: {
+          $size: "$likes",
+        },
+      },
+    },
+    {
+      $project: {
+        TextContent: 1,
+        imageUrl: 1,
+        videoContent: 1,
+        UserData: {
+          _id: 1,
+          fullName: 1,
+          userName: 1,
+          profilePicture: 1,
+          createdAt: 1,
+        },
+        isLikedByUser: 1,
+        likeCount: 1,
+        createdAt: 1,
+      },
+    },
   ]);
-  if (!tweets || tweets.length === 0)
-    throw new ApiError(400, "no tweets available");
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, tweets, "tweets fetched successfully"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        tweets: tweets || [],
+        currentPage: page,
+        totalPages,
+        totalTweets,
+        hasNextPage,
+      },
+      "tweets fetched successfully"
+    )
+  );
 });
 
 // TODO: create a endpoint to all tweets of all users -> any one can read and write tweets
@@ -215,27 +292,22 @@ const getAllTweets = AsyncHandler(async (req, res) => {
   const loginId = req.user._id;
   if (!loginId) throw new ApiError(400, "unauthorised access");
 
-  const {
-    page = 1,
-    // limit = 0,
+  const pageNo = Math.max(parseInt(req.query.page) || 1, 1);
+  const limitNo = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 50);
+  const skip = (pageNo - 1) * limitNo;
 
-    sortType = "asc",
-    sortBy = "createdAt",
-  } = req.query;
+  const totalTweets = await Tweet.countDocuments();
+  const totalPages = Math.ceil(totalTweets / limitNo);
+  const hasNextPage = pageNo < totalPages;
 
-  const pageNo = parseInt(page) > 0 ? parseInt(page) : 1;
-  // const limitNo = parseInt(limit) > 0 ? parseInt(limit) : 0;
-  // const skip = (pageNo - 1) * limitNo;
   const tweet = await Tweet.aggregate([
     {
       $sort: {
-        [sortBy]: sortType === "desc" ? -1 : 1,
+        createdAt: -1,
       },
     },
-    // Pagination
-    // { $skip: skip },
-    // { $limit: limitNo },
-
+    { $skip: skip },
+    { $limit: limitNo },
     {
       $lookup: {
         from: "users",
@@ -252,7 +324,6 @@ const getAllTweets = AsyncHandler(async (req, res) => {
         as: "likes",
       },
     },
-
     {
       $addFields: {
         isLikedByUser: {
@@ -272,31 +343,40 @@ const getAllTweets = AsyncHandler(async (req, res) => {
         },
       },
     },
-
     {
       $project: {
         TextContent: 1,
         imageUrl: 1,
         videoContent: 1,
-        UserData: 1,
+        UserData: {
+          _id: 1,
+          fullName: 1,
+          userName: 1,
+          profilePicture: 1,
+          createdAt: 1,
+        },
         isLikedByUser: 1,
         likeCount: 1,
-      },
-    },
-    {
-      $sort: {
         createdAt: 1,
       },
     },
   ]);
-  // .skip(skip)
 
   if (!tweet) throw new ApiError(500, "error in fetching tweets !");
-  return res
-    .status(200)
-    .json(new ApiResponse(200, tweet, "tweet fetched sucsessfully"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        tweets: tweet || [],
+        currentPage: pageNo,
+        totalPages,
+        totalTweets,
+        hasNextPage,
+      },
+      "tweet fetched sucsessfully"
+    )
+  );
 });
-
 //  get all tweets of particular user or any user;
 const getIndividualsTweets = AsyncHandler(async (req, res) => {
   const isLogin = req.user?._id;
