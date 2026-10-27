@@ -2,158 +2,277 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageSquare } from "lucide-react";
+import InfiniteScroll from "react-infinite-scroll-component";
 import TweetCard from "../Tweets/TweetCard";
 import MobileBottomNav from "../DashBoard/MobileBottomNav";
-import SpinnerWithText from "../LoadingSpinner";
+
+// Reusable Tweet Skeleton Loader
+const TweetSkeleton = () => (
+  <div className="w-full bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-lg animate-pulse">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
+      <div className="flex flex-col gap-1.5 flex-1">
+        <div className="w-32 h-3.5 bg-slate-800 rounded" />
+        <div className="w-20 h-2.5 bg-slate-800/70 rounded" />
+      </div>
+    </div>
+    <div className="space-y-2 mb-4">
+      <div className="w-full h-3 bg-slate-800/90 rounded" />
+      <div className="w-5/6 h-3 bg-slate-800/90 rounded" />
+      <div className="w-3/4 h-3 bg-slate-800/60 rounded" />
+    </div>
+    <div className="flex justify-between items-center pt-2 border-t border-slate-800/50">
+      <div className="w-12 h-4 bg-slate-800/60 rounded" />
+      <div className="w-12 h-4 bg-slate-800/60 rounded" />
+      <div className="w-12 h-4 bg-slate-800/60 rounded" />
+    </div>
+  </div>
+);
+
 function UserTweets() {
-  const refrer = useRef(null);
   const { tweet_id } = useParams();
   const navigate = useNavigate();
+
   const [userTweet, setUserTweet] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loadingTweet, setLoadingTweet] = useState(true);
   const [err, setErr] = useState("");
-  const [content, setContent] = useState([]);
-  
-  
-  const fetchTweet = async (tweet_id) => {
-    setLoading(true);
+
+  // Infinite scroll states for owner's more tweets
+  const [ownerTweets, setOwnerTweets] = useState([]);
+  const [ownerPage, setOwnerPage] = useState(1);
+  const [hasMoreOwner, setHasMoreOwner] = useState(true);
+  const [loadingOwnerTweets, setLoadingOwnerTweets] = useState(false);
+  const isFetchingOwnerRef = useRef(false);
+
+  // Fetch target single tweet details
+  const fetchTweet = async (id) => {
+    setLoadingTweet(true);
     setErr("");
     try {
-      console.log("Fetching tweet with ID:", tweet_id);
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/tweet/getTweetById/${tweet_id}`,
-        {
-          withCredentials: true,
-        }
+        `${import.meta.env.VITE_API_URL}/tweet/getTweetById/${id}`,
+        { withCredentials: true }
       );
-
       const tweetData = res?.data?.response;
-      console.log(tweetData);
-      if (!tweetData) throw new Error("No tweet found");
-      setLoading(false);
+      if (!tweetData) throw new Error("Tweet not found");
+      
       setUserTweet(tweetData);
     } catch (error) {
-      setLoading(false);
       console.error("Error fetching tweet:", error);
-      setErr("Failed to load tweet");
+      setErr("Failed to load post. It may have been deleted.");
     } finally {
-      setLoading(false);
+      setLoadingTweet(false);
     }
   };
 
-  const fetchOwnerTweet = async (userId) => {
-    setLoading(true);
+  // Fetch initial batch of more tweets from this author
+  const fetchInitialOwnerTweets = async (userId) => {
+    if (!userId) return;
+    setLoadingOwnerTweets(true);
+    isFetchingOwnerRef.current = true;
     try {
-      const tweetResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/tweet/userTweets/${userId}`,{
-          withCredentials:true
-        }
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/tweet/userTweets/${userId}?page=1&limit=6`,
+        { withCredentials: true }
       );
-      if (!tweetResponse)
-        throw new Error("error at getting response of user contents");
-       console.log("resposnse of the users cont", tweetResponse.data.response)
-      setLoading(false);
-      setContent(tweetResponse.data.response[0]?.UserTweets);
+      const resData = res?.data?.response;
+      console.log("lets check the response for more tweets from the user ", resData);
+      const list =
+        resData?.tweets ||
+        resData?.[0]?.UserTweets ||
+        (Array.isArray(resData) ? resData : []);
+      // Filter out the main tweet itself from the "More from author" list
+      const filtered = list.filter((t) => t?._id?.toString() !== tweet_id?.toString());
+      setOwnerTweets(filtered);
+      setOwnerPage(1);
+      setHasMoreOwner(resData?.hasNextPage ?? (list.length >= 6));
     } catch (err) {
-      setLoading(false);
-      setErr(err.message);
-      console.log("error occured in fetching extra content of user", err);
+      console.error("Error fetching author's more tweets:", err);
+      setOwnerTweets([]);
+      setHasMoreOwner(false);
     } finally {
-      setLoading(false);
+      setLoadingOwnerTweets(false);
+      isFetchingOwnerRef.current = false;
     }
   };
+
+  // Fetch next batch for infinite scroll
+  const fetchNextOwnerTweets = async () => {
+    const ownerId = userTweet?.owner_data?.[0]?._id;
+    if (!ownerId || isFetchingOwnerRef.current || !hasMoreOwner) return;
+    isFetchingOwnerRef.current = true;
+
+    const nextPage = ownerPage + 1;
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/tweet/userTweets/${ownerId}?page=${nextPage}&limit=6`,
+        { withCredentials: true }
+      );
+      const resData = res?.data?.response;
+      const newItems =
+        resData?.tweets ||
+        resData?.[0]?.UserTweets ||
+        (Array.isArray(resData) ? resData : []);
+
+      if (Array.isArray(newItems) && newItems.length > 0) {
+        setOwnerTweets((prev) => {
+          const existingIds = new Set(prev.map((t) => t?._id?.toString()));
+          // ensure no duplicate or origin tweet
+          const filtered = newItems.filter(
+            (t) => t?._id && t._id.toString() !== tweet_id?.toString() && !existingIds.has(t._id.toString())
+          );
+          return [...prev, ...filtered];
+        });
+        setOwnerPage(nextPage);
+        setHasMoreOwner(resData?.hasNextPage ?? false);
+      } else {
+        setHasMoreOwner(false);
+      }
+    } catch (err) {
+      console.error("Error fetching more tweets:", err);
+      setHasMoreOwner(false);
+    } finally {
+      isFetchingOwnerRef.current = false;
+    }
+  };
+
   useEffect(() => {
-    if (tweet_id) fetchTweet(tweet_id);
+    if (tweet_id) {
+      fetchTweet(tweet_id);
+    }
   }, [tweet_id]);
 
   useEffect(() => {
-    if (userTweet)
-      fetchOwnerTweet(userTweet.owner_data[0]._id);
-  }, [userTweet]);
+    const authorId = userTweet?.owner_data?.[0]?._id;
+    if (authorId) {
+      fetchInitialOwnerTweets(authorId);
+    }
+  }, [userTweet, tweet_id]);
+
+  const author = userTweet?.owner_data?.[0] || {};
+
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-x-hidden flex flex-col pb-20 md:pb-0">
-      
-      {/* Header Container */}
-      <div className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 px-4 py-4 sm:px-8">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-x-hidden flex flex-col pb-20 md:pb-8">
+      {/* Top Sticky Header */}
+      <div className="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50 px-4 py-3.5 sm:px-8">
         <div className="w-full max-w-3xl mx-auto flex items-center justify-between">
-          <button 
-            className="group flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-800/50 hover:bg-slate-700/80 border border-slate-700/50 rounded-xl text-slate-300 hover:text-white transition-all duration-300 shadow-sm" 
+          <button
+            className="group flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/50 rounded-xl text-slate-300 hover:text-white transition-all duration-200 shadow-sm"
             onClick={() => navigate(-1)}
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-            <span className="text-sm sm:text-base font-medium font-poppins">Back</span>
+            <span className="text-sm font-medium font-poppins">Back</span>
           </button>
-          
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-100 font-montserrat flex items-center gap-2">
+
+          <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-100 font-montserrat">
             Post Details
           </h1>
-          
-          <div className="w-[70px] sm:w-[88px]"></div> {/* Spacer */}
+
+          <div className="w-[70px]"></div>
         </div>
       </div>
 
-      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-6">
-        
-        {/* Loading / Error States */}
-        {loading && (
-          <div className="flex justify-center py-8">
-            <SpinnerWithText text="Loading tweet..." />
-          </div>
-        )}
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
+        {/* Error Alert */}
         {err && (
-          <div className="bg-rose-500/10 border border-rose-500/50 text-rose-400 p-4 rounded-xl text-center font-montserrat">
+          <div className="bg-rose-500/10 border border-rose-500/40 text-rose-300 p-4 rounded-xl text-center font-montserrat text-sm">
             {err}
           </div>
         )}
 
-        {/* Main Origin Tweet */}
-        {userTweet && userTweet.owner_data?.[0] && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* Origin Tweet Skeleton or Card */}
+        {loadingTweet ? (
+          <TweetSkeleton />
+        ) : userTweet && author ? (
+          <div className="animate-in fade-in slide-in-from-bottom-3 duration-300">
             <TweetCard
-              profilePicSrc={userTweet.owner_data[0].profilePicture}
-              username={userTweet.owner_data[0].fullName}
-              content={userTweet.TextContent}
-              imageContent={userTweet.imageUrl}
-              handle={userTweet.owner_data[0].userName}
+              currentTweetId={userTweet?._id}
+              isLiked={Boolean(userTweet?.isLikedByUser)}
+              currentUserId={author?._id || ""}
+              profilePicSrc={author?.profilePicture || "https://picsum.photos/seed/default/200/200"}
+              username={author?.fullName || "User"}
+              content={userTweet?.TextContent || ""}
+              imageContent={userTweet?.imageUrl || ""}
+              handle={author?.userName || "user"}
+              likes={userTweet?.likeCount || 0}
+              timestamp={userTweet?.createdAt}
             />
           </div>
-        )}
+        ) : null}
 
-        {/* Related Tweets Divider */}
-        {content && content.length > 0 && (
-          <div className="w-full mt-6 mb-2">
+        {/* More Posts from Author Section with Infinite Scroll */}
+        {userTweet && (
+          <div className="w-full mt-4">
             <div className="flex items-center gap-4 mb-4">
-              <div className="h-px bg-slate-700/50 flex-1"></div>
-              <h2 className="font-semibold text-slate-400 font-montserrat flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                More from @{userTweet?.owner_data?.[0]?.userName}
+              <div className="h-px bg-slate-800 flex-1" />
+              <h2 className="font-semibold text-xs uppercase tracking-wider text-slate-400 font-montserrat flex items-center gap-2">
+                <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
+                More from @{author?.userName || "user"}
               </h2>
-              <div className="h-px bg-slate-700/50 flex-1"></div>
+              <div className="h-px bg-slate-800 flex-1" />
             </div>
-            
-            {/* Related Tweets Feed */}
-            <div className="flex flex-col gap-4">
-              {content.map((cont, index) => (
-                <div 
-                  key={cont._id} 
-                  className="animate-in fade-in slide-in-from-bottom-4" 
-                  style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
-                >
-                  <TweetCard
-                    profilePicSrc={userTweet.owner_data[0].profilePicture}
-                    username={userTweet.owner_data[0].fullName}
-                    content={cont?.TextContent}
-                    imageContent={cont?.imageUrl}
-                    handle={userTweet.owner_data[0].userName}
-                  />
+
+            {loadingOwnerTweets ? (
+              <div className="flex flex-col gap-4">
+                <TweetSkeleton />
+                <TweetSkeleton />
+              </div>
+            ) : ownerTweets.length === 0 ? (
+              <p className="text-center py-6 text-xs text-slate-500 font-poppins">
+                No other posts from this user yet.
+              </p>
+            ) : (
+              <InfiniteScroll
+                dataLength={ownerTweets.length}
+                next={fetchNextOwnerTweets}
+                hasMore={hasMoreOwner}
+                loader={
+                  <div className="py-4">
+                    <TweetSkeleton />
+                  </div>
+                }
+                endMessage={
+                  <p className="text-center py-6 text-xs text-slate-500">
+                    No more posts from this author.
+                  </p>
+                }
+              >
+                <div className="flex flex-col gap-5">
+                  {ownerTweets.map((t, index) => {
+                    const postAuthor = Array.isArray(t?.UserData)
+                      ? t.UserData[0]
+                      : t?.UserData || author;
+
+                    return (
+                      <TweetCard
+                        key={t?._id || `owner-tweet-${index}`}
+                        currentTweetId={t?._id}
+                        isLiked={Boolean(t?.isLikedByUser)}
+                        currentUserId={postAuthor?._id || ""}
+                        profilePicSrc={postAuthor?.profilePicture || author?.profilePicture}
+                        username={postAuthor?.fullName || author?.fullName}
+                        content={t?.TextContent || ""}
+                        imageContent={t?.imageUrl || ""}
+                        handle={postAuthor?.userName || author?.userName}
+                        likes={t?.likeCount || 0}
+                        timestamp={t?.createdAt}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (t?._id) {
+                            navigate(`/tweet/${t._id}`);
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                          }
+                        }}
+                      />
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </InfiniteScroll>
+            )}
           </div>
         )}
       </div>
 
-      {/* Mobile Navigation */}
       <MobileBottomNav />
     </div>
   );

@@ -38,6 +38,7 @@ import PostInterFace from "./components/DashBoard/PostCreate/PostInterFace.jsx";
 import ResetPassword from "./components/ForgotPassword/ResetPassword.jsx";
 import Start_Chat_Page from "./components/ChatSpacing/Start_Chat_Page.jsx";
 import UserTweets from "./components/Users/UserTweets.jsx";
+import EditProfile from "./components/Users/EditProfile.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
@@ -135,6 +136,10 @@ const router = createBrowserRouter([
       {
         path:"/my_account",
         element:<UserProfile/>
+      },
+      {
+        path: "/edit_profile",
+        element: <EditProfile />
       },
       {
         path:"/post_interface",

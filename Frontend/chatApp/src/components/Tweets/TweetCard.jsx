@@ -149,22 +149,20 @@ const handleClickInsideDiv=(e)=>{
     setLoading(true);
     try {
       const response = await axios.get(
-        `${Url}/comment/getAllCommentsOfTweet/${currentTweetId}`,
+        `${Url}/comment/getAllCommentsOfTweet/${currentTweetId}?page=1&limit=20`,
         {
           withCredentials: true,
         }
       );
-      if (response) {
-        console.log("response of fetching Tweet - checking what comment we are getting :", response.data.response);
-        setLoading(false);
-        setTweetComments(response.data.response);
-
+      if (response?.data?.response) {
+        const resData = response.data.response;
+        const commentList = resData?.comments || (Array.isArray(resData) ? resData : []);
+        setTweetComments(commentList);
       }
-
-      if (!response) console.log("error in feching comment");
     } catch (err) {
+      console.error("error in fetching all comments of that tweet", err);
+    } finally {
       setLoading(false);
-      console.log("error in fetching all commments of that tweet");
     }
   };
 
