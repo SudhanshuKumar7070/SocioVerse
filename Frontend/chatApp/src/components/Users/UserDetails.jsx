@@ -188,18 +188,61 @@ export default function UserDetails() {
     fetchTweets(tweetsPage + 1);
   };
 
+  /* ───────── Follow Status Check ───────── */
+  const checkFollowStatus = useCallback(async () => {
+    if (!userId || currentUser?._id === userId) return;
+    try {
+      const res = await axios.get(`${Url}/follow/isFollowingUser/${userId}`, {
+        withCredentials: true,
+      });
+      if (res?.data?.response?.isFollowing !== undefined) {
+        setIsFollowing(Boolean(res.data.response.isFollowing));
+      }
+    } catch (err) {
+      console.error("Error checking follow status:", err);
+    }
+  }, [userId, currentUser?._id, Url]);
+
   /* ───────── Actions ───────── */
   const handleFollowUser = async () => {
+    if (actionLoading) return;
     setActionLoading(true);
     try {
-      await axios.post(
-        `${Url}/follow/followUser/${userId}`,
-        { message: "followed user" },
-        { withCredentials: true }
-      );
-      setIsFollowing(!isFollowing);
+      if (isFollowing) {
+        await axios.post(
+          `${Url}/follow/unfollowUser/${userId}`,
+          {},
+          { withCredentials: true }
+        );
+        setIsFollowing(false);
+        setData((prev) => {
+          if (!prev) return prev;
+          const currentFollowers = Array.isArray(prev.Followers) ? prev.Followers : [];
+          return {
+            ...prev,
+            Followers: currentFollowers.filter(
+              (f) => (f.Follower || f._id)?.toString() !== currentUser?._id?.toString()
+            ),
+          };
+        });
+      } else {
+        await axios.post(
+          `${Url}/follow/followUser/${userId}`,
+          { message: "followed user" },
+          { withCredentials: true }
+        );
+        setIsFollowing(true);
+        setData((prev) => {
+          if (!prev) return prev;
+          const currentFollowers = Array.isArray(prev.Followers) ? prev.Followers : [];
+          return {
+            ...prev,
+            Followers: [...currentFollowers, { Follower: currentUser?._id }],
+          };
+        });
+      }
     } catch (err) {
-      console.error("Error following user:", err);
+      console.error("Error toggling follow user:", err);
     } finally {
       setActionLoading(false);
     }
@@ -225,9 +268,10 @@ export default function UserDetails() {
   useEffect(() => {
     if (userId) {
       fetchProfile();
+      checkFollowStatus();
       fetchTweets(1, true);
     }
-  }, [userId, fetchProfile, fetchTweets]);
+  }, [userId, fetchProfile, checkFollowStatus, fetchTweets]);
 
   /* ───────── Derived Values ───────── */
   const bio = data?.bio || {};

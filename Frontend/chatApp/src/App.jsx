@@ -3,48 +3,67 @@ import i18n from "./Hooks/i18n.setup.js";
 import { useTranslation } from "react-i18next";
 import Container from "./components/Container";
 import { Outlet } from "react-router-dom";
-import { useSocket } from "./components/SocketConnection";
+import { useSocket, useGlobalSocket } from "./components/SocketConnection";
 import { useState } from "react";
-import { useGlobalSocket } from "./components/SocketConnection";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import ContactList from "./components/ContactList";
 import { useContext } from "react";
 import { contextMap } from "./store/NotificationMap.jsx";
 import LandingPage from "./components/LandingPage/LandingPage.jsx";
 import axios from "axios";
-import { useDispatch } from "react-redux";
 import { login } from "./store/authSlice.js";
 import { setTokens } from "./store/tokenSlice.js";
 import { messaging } from "./Config/firebase.config.js";
 import { getToken } from "firebase/messaging";
 import { setCurrentDeviceToken } from "./store/currentDeviceToken.js";
 import { listenForForegroundNotifications } from "./Config/firebase.forground.js";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 function App() {
   const { t, i18n } = useTranslation();
   const dispatch = useDispatch();
-  // method to cahange language
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
-  const { setValue, getValue, globalMap } = useContext(contextMap);
 
+  const { setValue, getValue, globalMap } = useContext(contextMap);
   const globalSocket = useGlobalSocket();
   const myId = useSelector((state) => state.auth?.userData?._id);
+
   useEffect(() => {
+    if (!globalSocket) return;
+
+    const emitConnectionEstablished = () => {
+      if (myId) {
+        console.log("Emitting connectionEstablished for user:", myId);
+        globalSocket.emit("connectionEstablished", { userId: myId });
+      }
+    };
+
+    // If socket is already connected when component mounts or when myId becomes available
+    if (globalSocket.connected && myId) {
+      emitConnectionEstablished();
+    }
+
     const handleConnect = () => {
-      globalSocket.emit("connectionEstablished", { userId: myId });
+      emitConnectionEstablished();
     };
 
     const handleAddedComment = (data) => {
       setValue("commentNotification", data);
+      toast.info("💬 New comment on your post!");
     };
 
     const handleFriendRequestNotification = (data) => {
       setValue("friendRequest", data);
+      toast.info("👥 You have a new friend request!");
     };
 
     const handleFriendRequestAcceptedNotification = (data) => {
       setValue("friendRequestAccepted", data);
+      toast.success("🎉 Friend request accepted!");
     };
 
     const handleFriendRequestAccepted = (data) => {
@@ -55,47 +74,56 @@ function App() {
       setValue("friendRequestRejected", data);
     };
 
-    const handleFollowRequest = (message) => {
-      setValue("followNotification", message);
+    const handleFollowRequest = (data) => {
+      setValue("followNotification", data);
+      const senderName =
+        data?.sender?.fullName || data?.sender?.userName || "Someone";
+      toast.info(`✨ ${senderName} started following you!`);
+    };
+
+    const handleNewChatNotification = (data) => {
+      const senderName = data?.sender?.fullName || data?.sender?.userName || "New Message";
+      toast.info(`📩 ${senderName}: ${data?.message?.content || "Sent a message"}`);
     };
 
     globalSocket.on("connect", handleConnect);
     globalSocket.on("addedComment", handleAddedComment);
     globalSocket.on(
       "friend_request_notification",
-      handleFriendRequestNotification,
+      handleFriendRequestNotification
     );
     globalSocket.on(
       "friend_request_acceptd_notofication",
-      handleFriendRequestAcceptedNotification,
+      handleFriendRequestAcceptedNotification
     );
     globalSocket.on("friend_request_acceptd", handleFriendRequestAccepted);
     globalSocket.on("rejected_friend_request", handleRejectedFriendRequest);
     globalSocket.on("FollowRequest", handleFollowRequest);
-
+    globalSocket.on("newChatNotfication", handleNewChatNotification);
 
     return () => {
       globalSocket.off("connect", handleConnect);
       globalSocket.off("addedComment", handleAddedComment);
       globalSocket.off(
         "friend_request_notification",
-        handleFriendRequestNotification,
+        handleFriendRequestNotification
       );
       globalSocket.off(
         "friend_request_acceptd_notofication",
-        handleFriendRequestAcceptedNotification,
+        handleFriendRequestAcceptedNotification
       );
       globalSocket.off("friend_request_acceptd", handleFriendRequestAccepted);
       globalSocket.off("rejected_friend_request", handleRejectedFriendRequest);
       globalSocket.off("FollowRequest", handleFollowRequest);
+      globalSocket.off("newChatNotfication", handleNewChatNotification);
     };
-  }, [globalSocket]);
+  }, [globalSocket, myId]);
 
   const get_Current_User = async () => {
     try {
       const user = await axios.get(
         `${import.meta.env.VITE_API_URL}/user/current_user_data`,
-        { withCredentials: true },
+        { withCredentials: true }
       );
       if (!user) return;
       const data = user.data.response;
@@ -103,12 +131,12 @@ function App() {
         login({
           userData: data,
           token: data.RefreshToken,
-        }),
+        })
       );
       dispatch(
         setTokens({
           refreshToken: data.RefreshToken,
-        }),
+        })
       );
     } catch (err) {
       console.error("error occurred in getting current user", err);
@@ -117,21 +145,21 @@ function App() {
 
   const notificationPermission = async () => {
     try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        const token = await getToken(messaging, {
-          vapidKey:
-            "BEvQqFWDCG8dgBnaKuwJZKiSKQQeN1ZMwbi7G63oXVQbuzJDP2xSK4sCO87lR629girpftLuD0m5K083Z9_j2AQ",
-        });
-        dispatch(setCurrentDeviceToken({ currentDeviceToken: token }));
-        // Start listening for foreground messages AFTER service worker is registered
-        listenForForegroundNotifications();
+      if (typeof Notification !== "undefined" && Notification.requestPermission) {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const token = await getToken(messaging, {
+            vapidKey:
+              "BEvQqFWDCG8dgBnaKuwJZKiSKQQeN1ZMwbi7G63oXVQbuzJDP2xSK4sCO87lR629girpftLuD0m5K083Z9_j2AQ",
+          });
+          dispatch(setCurrentDeviceToken({ currentDeviceToken: token }));
+          listenForForegroundNotifications();
+        }
       }
     } catch (err) {
       console.error("error occurred in getting notification permission", err);
     }
   };
-  //  useeffect to get permission
 
   useEffect(() => {
     get_Current_User();
@@ -143,6 +171,18 @@ function App() {
       <Container>
         <Outlet />
       </Container>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3500}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
     </div>
   );
 }
