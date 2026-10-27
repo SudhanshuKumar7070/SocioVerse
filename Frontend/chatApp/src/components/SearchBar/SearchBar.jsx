@@ -1,18 +1,17 @@
-import React from 'react'
-import { forwardRef,ref } from 'react'
-import { useState } from 'react'
+import React, { forwardRef } from 'react';
 
- const SearchBar = forwardRef(({ className='',
-    width='',
-    ...props},ref)=>{
-      
- return (
-    <div className={`sm:min-h-12  rounded-2xl hover:border hover:transition-all  backdrop-blur-md ${width}`}>
-      <input type="text" ref={ref}   {...props} className='w-full min-h-14 active:outline-none focus:outline-none rounded-2xl font-montserrat bg-sky-300 bg-opacity-10  px-2 py-2  shadow-lg text-white placeholder:text-slate-400' placeholder='Search...' />
+const SearchBar = forwardRef(({ className = '', width = 'w-full', ...props }, ref) => {
+  return (
+    <div className={`relative flex items-center rounded-xl bg-slate-800/80 border border-slate-700/60 shadow-sm focus-within:border-sky-500/60 focus-within:ring-1 focus-within:ring-sky-500/30 transition-all ${width} ${className}`}>
+      <input
+        type="text"
+        ref={ref}
+        {...props}
+        className="w-full h-10 px-3.5 bg-transparent rounded-xl font-montserrat text-xs sm:text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none"
+        placeholder="Search contacts..."
+      />
     </div>
-  )
-})
+  );
+});
 
-
-
-export default SearchBar
+export default SearchBar;

@@ -10,7 +10,7 @@ function MobileBottomNav() {
     {
       name: "Feeds",
       icon: <Rss size={24} />,
-      link: "/feeds"
+      link: "/dashboard"
     },
     {
       name: "Messages",

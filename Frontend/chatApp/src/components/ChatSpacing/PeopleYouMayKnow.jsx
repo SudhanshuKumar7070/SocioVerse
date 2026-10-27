@@ -1,35 +1,38 @@
 import React from 'react'
 
-function PeopleYouMayKnow({propClass}) {
-    const data =[ '','','','',''];
+function PeopleYouMayKnow({ propClass = "" }) {
+  const data = [];
+
   return (
-    <ul className={`text-sky-200    px-2 py-2   overflow-y-scroll   scrollbar-custom scroll-smooth gap-2 ${propClass}` }>
-           
-      {data &&
+    <ul className={`w-full flex flex-col gap-1.5 overflow-y-auto scrollbar-custom scroll-smooth font-montserrat ${propClass}`}>
+      {data && data.length > 0 ? (
         data.map((element, index) => (
           <li
             key={index}
-            className=" py-1 px-2 sm:max-h-14 flex justify-start gap-6 items-center  my-2 cursor-pointer bg-slate-900  hover:bg-blue-300 hover:border-blue-500 border-slate-100 rounded-lg hover:shadow-md"
-            onClick={()=>{
-              handleCreateChat(element);
-            }}
+            className="w-full py-2 px-2.5 flex items-center gap-3 cursor-pointer bg-slate-900/60 hover:bg-slate-800 border border-slate-800/80 hover:border-sky-500/40 rounded-xl transition-all duration-200"
           >
-            <div className=" px-4 py-2">
+            <div className="shrink-0">
               <img
-                className="sm:h-12 sm:w-12 rounded-full"
-                src={element.profilePicture}
-                alt="no pic"
+                className="h-10 w-10 rounded-full object-cover border border-slate-700/60"
+                src={element.profilePicture || "https://picsum.photos/seed/suggest/100/100"}
+                alt="suggested user"
               />
             </div>
-            <div className="flex flex-col item-center justify-center">
-              <p className="  font-sans  font-semibold text-l text-pretty text-blue-500">{element.fullName}</p>
-
-              <p className="text-gray-700 text-sm font-serif  "> {element.userName}</p>
+            <div className="flex flex-col min-w-0 flex-1 justify-center">
+              <p className="font-semibold text-sm text-slate-100 truncate">
+                {element.fullName}
+              </p>
+              <p className="text-xs text-sky-400/80 truncate">@{element.userName}</p>
             </div>
           </li>
-        ))}
+        ))
+      ) : (
+        <li className="text-center py-4 text-xs text-slate-500">
+          No suggestions available right now
+        </li>
+      )}
     </ul>
-  )
+  );
 }
 
-export default PeopleYouMayKnow
+export default PeopleYouMayKnow;

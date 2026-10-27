@@ -1,27 +1,28 @@
-
-import { useRef } from "react";
-import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useRef, useEffect, useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSocket } from "../SocketConnection.jsx";
 import ContactList from "../ContactList";
 import PeopleYouMayKnow from "./PeopleYouMayKnow";
 import { useDispatch } from "react-redux";
 import SearchBar from "../SearchBar/SearchBar.jsx";
-
-// // import { useDispatch } from "react-redux";
-// import SearchBar from "../SearchBar/SearchBar.jsx";
+import MobileBottomNav from "../DashBoard/MobileBottomNav.jsx";
 import {
   setCurrentRoom,
   updateConversationState,
 } from "../../store/conversationSlice";
+
 function ChatingSpace() {
   const searchRef = useRef();
   const navigate = useNavigate();
+  const location = useLocation();
   const socket = useSocket();
   const [convoId, setConvoId] = useState("");
-  const [searchVal,setSearchVal]=useState("")
+  const [searchVal, setSearchVal] = useState("");
   const dispatch = useDispatch();
-  
+
+  // Check if user is currently inside an active chat conversation (e.g. /center_area/64abcd...)
+  const isInsideChat = location.pathname.includes("/center_area/") && !location.pathname.endsWith("/start_chat");
+
   const handleConversationStart = (data) => {
     try {
       const { conversationId, room } = data;
@@ -35,50 +36,84 @@ function ChatingSpace() {
         })
       );
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
+
   useEffect(() => {
     socket.on("conversationStarted", handleConversationStart);
-    
-    return ()=>{
+    return () => {
       socket.off("conversationStarted", handleConversationStart);
-    }
-  }, []);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (convoId) {
       navigate(`/center_area/${convoId}`);
-    }   
+    }
   }, [convoId]);
-  return (
-    <div className="flex flex-col md:flex-row gap-1 h-[100dvh] w-full overflow-hidden relative bg-transparent">
-      
-      {/* Chat List Panel (30% on desktop, full width on mobile if no convo) */}
-      <div 
-        className={`w-full md:w-[30%] lg:w-[25%] bg-slate-900/50 backdrop-blur-md h-full shadow-lg md:rounded-r-2xl px-2 py-3 overflow-y-scroll scrollbar-custom border-r border-slate-700/50 ${convoId ? 'hidden md:block' : 'block flex-1'}`}
-      >
-        <div id="searchBar" className="w-full sticky top-0 z-20 bg-slate-900/90 pb-2 backdrop-blur-xl">
-          <SearchBar width="w-full" ref={searchRef} onChange={(e)=> setSearchVal(e.target.value)}/>
-        </div>
-        
-        <h1 className="font-montserrat font-semibold text-lg sm:text-xl text-slate-200 px-2 py-3 border-b border-slate-700/50 mb-2">
-          Conversations
-        </h1>
-        <ContactList propClass={"max-h-[60%]"} name={searchVal} />
-        
-        <h1 className="font-montserrat font-semibold text-lg sm:text-xl text-slate-200 px-2 py-3 border-t border-b border-slate-700/50 my-2 mt-4">
-          Suggestions
-        </h1> 
-        <PeopleYouMayKnow propClass={"h-[30%]"} /> 
-      </div>
 
-      {/* Active Conversation Area (70% on desktop, full width on mobile if convo open) */}
-      <div 
-        className={`w-full md:flex-1 h-full shadow-lg overflow-hidden bg-slate-900/40 backdrop-blur-sm relative ${!convoId ? 'hidden md:block' : 'block flex-1'}`}
+  return (
+    <div className={`flex h-screen w-full overflow-hidden relative bg-transparent ${!isInsideChat ? 'pb-16 md:pb-0' : ''}`}>
+      {/* 1. Chat List & Contacts Sidebar:
+          - Desktop: Compact fixed width (w-72 lg:w-80)
+          - Mobile: Full width when on contacts list (/center_area/start_chat), hidden when an active chat conversation is open
+      */}
+      <aside
+        className={`flex-col h-full bg-slate-900/60 backdrop-blur-md border-r border-slate-800/80 shadow-xl overflow-hidden shrink-0 transition-all duration-200 z-10 ${
+          isInsideChat
+            ? "hidden md:flex md:w-72 lg:w-80"
+            : "flex w-full md:w-72 lg:w-80"
+        }`}
       >
-        <Outlet/>
-      </div>
+        {/* Sticky Search Header */}
+        <div className="p-3 border-b border-slate-800/70 bg-slate-900/80 shrink-0">
+          <SearchBar
+            width="w-full"
+            ref={searchRef}
+            onChange={(e) => setSearchVal(e.target.value)}
+          />
+        </div>
+
+        {/* Scrollable Contacts and Suggestions */}
+        <div className="flex-1 overflow-y-auto scrollbar-custom p-2.5 flex flex-col gap-4">
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2">
+              <h2 className="font-poppins font-semibold text-xs tracking-wider uppercase text-sky-400">
+                Conversations
+              </h2>
+            </div>
+            <ContactList name={searchVal} />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between px-2 mb-2 pt-2 border-t border-slate-800/60">
+              <h2 className="font-poppins font-semibold text-xs tracking-wider uppercase text-slate-400">
+                Suggestions
+              </h2>
+            </div>
+            <PeopleYouMayKnow />
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. Active Chat Conversation / Placeholder Area:
+          - Desktop: Fills remaining space (flex-1)
+          - Mobile: Full screen when inside an active conversation
+      */}
+      <main
+        className={`flex-1 min-w-0 h-full overflow-hidden bg-slate-950/40 backdrop-blur-sm relative ${
+          !isInsideChat ? "hidden md:flex flex-col" : "flex flex-col w-full"
+        }`}
+      >
+        <Outlet />
+      </main>
+
+      {/* 3. Mobile Bottom Navigation:
+          - Displays when viewing the conversations list on mobile
+          - Hidden inside active messaging area to maximize keyboard and chat typing space
+      */}
+      {!isInsideChat && <MobileBottomNav />}
     </div>
   );
 }
