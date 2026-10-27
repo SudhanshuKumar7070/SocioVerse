@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { addFollowingId, removeFollowingId } from "../../store/authSlice.js";
 import axios from "axios";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   UserPlus,
@@ -103,15 +104,29 @@ const StatPill = ({ label, value, icon: Icon, color }) => (
 export default function UserDetails() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const currentUser = useSelector((state) => state.auth?.userData);
   const Url = import.meta.env.VITE_API_URL;
+
+  const reduxFollowingIds = useSelector(
+    (state) => state.auth?.followingIds || []
+  );
 
   // Profile data states
   const [data, setData] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(() =>
+    userId ? reduxFollowingIds.includes(userId.toString()) : false
+  );
   const [isFriend, setIsFriend] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Sync follow state when reduxFollowingIds or userId changes
+  useEffect(() => {
+    if (userId) {
+      setIsFollowing(reduxFollowingIds.includes(userId.toString()));
+    }
+  }, [userId, reduxFollowingIds]);
 
   // Tweets states
   const [tweets, setTweets] = useState([]);
@@ -196,25 +211,28 @@ export default function UserDetails() {
         withCredentials: true,
       });
       if (res?.data?.response?.isFollowing !== undefined) {
-        setIsFollowing(Boolean(res.data.response.isFollowing));
+        const following = Boolean(res.data.response.isFollowing);
+        setIsFollowing(following);
+        if (following) {
+          dispatch(addFollowingId(userId.toString()));
+        } else {
+          dispatch(removeFollowingId(userId.toString()));
+        }
       }
     } catch (err) {
       console.error("Error checking follow status:", err);
     }
-  }, [userId, currentUser?._id, Url]);
+  }, [userId, currentUser?._id, Url, dispatch]);
 
   /* ───────── Actions ───────── */
   const handleFollowUser = async () => {
     if (actionLoading) return;
     setActionLoading(true);
+    const targetUserId = userId?.toString();
     try {
       if (isFollowing) {
-        await axios.post(
-          `${Url}/follow/unfollowUser/${userId}`,
-          {},
-          { withCredentials: true }
-        );
         setIsFollowing(false);
+        if (targetUserId) dispatch(removeFollowingId(targetUserId));
         setData((prev) => {
           if (!prev) return prev;
           const currentFollowers = Array.isArray(prev.Followers) ? prev.Followers : [];
@@ -225,13 +243,14 @@ export default function UserDetails() {
             ),
           };
         });
-      } else {
         await axios.post(
-          `${Url}/follow/followUser/${userId}`,
-          { message: "followed user" },
+          `${Url}/follow/unfollowUser/${targetUserId}`,
+          {},
           { withCredentials: true }
         );
+      } else {
         setIsFollowing(true);
+        if (targetUserId) dispatch(addFollowingId(targetUserId));
         setData((prev) => {
           if (!prev) return prev;
           const currentFollowers = Array.isArray(prev.Followers) ? prev.Followers : [];
@@ -240,9 +259,21 @@ export default function UserDetails() {
             Followers: [...currentFollowers, { Follower: currentUser?._id }],
           };
         });
+        await axios.post(
+          `${Url}/follow/followUser/${targetUserId}`,
+          { message: "followed user" },
+          { withCredentials: true }
+        );
       }
     } catch (err) {
       console.error("Error toggling follow user:", err);
+      // Revert if error
+      setIsFollowing((prev) => !prev);
+      if (isFollowing) {
+        if (targetUserId) dispatch(addFollowingId(targetUserId));
+      } else {
+        if (targetUserId) dispatch(removeFollowingId(targetUserId));
+      }
     } finally {
       setActionLoading(false);
     }

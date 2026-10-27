@@ -11,7 +11,7 @@ import { useContext } from "react";
 import { contextMap } from "./store/NotificationMap.jsx";
 import LandingPage from "./components/LandingPage/LandingPage.jsx";
 import axios from "axios";
-import { login } from "./store/authSlice.js";
+import { login, setFollowingIds } from "./store/authSlice.js";
 import { setTokens } from "./store/tokenSlice.js";
 import { messaging } from "./Config/firebase.config.js";
 import { getToken } from "firebase/messaging";
@@ -138,6 +138,23 @@ function App() {
           refreshToken: data.RefreshToken,
         })
       );
+
+      // Fetch logged-in user's followings to maintain consistent follow state across all pages
+      try {
+        const followingsRes = await axios.get(
+          `${import.meta.env.VITE_API_URL}/follow/getAllFollowingsOfLoggedInUser`,
+          { withCredentials: true }
+        );
+        const raw =
+          followingsRes?.data?.response ?? followingsRes?.data?.data;
+        const list = Array.isArray(raw) ? raw : [];
+        const ids = list
+          .map((item) => (item._id || item.Following || item)?.toString())
+          .filter(Boolean);
+        dispatch(setFollowingIds(ids));
+      } catch (fErr) {
+        console.error("Error fetching initial followings in App:", fErr);
+      }
     } catch (err) {
       console.error("error occurred in getting current user", err);
     }

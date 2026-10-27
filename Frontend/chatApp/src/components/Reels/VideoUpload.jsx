@@ -93,6 +93,7 @@ export default function VideoUpload() {
     try {
       await axios.post(`${import.meta.env.VITE_VIDEO_SERVICE_URL}/video/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
         onUploadProgress: (evt) => {
           const pct = Math.round((evt.loaded * 100) / evt.total);
           setProgress(pct);
@@ -309,7 +310,7 @@ export default function VideoUpload() {
             {isSuccess && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-sm font-montserrat">
                 <CheckCircle2 size={17} className="shrink-0" />
-                Reel submitted! It's being processed — you'll see it in your feed shortly.
+                Reel submitted! It&apos;s being processed — you&apos;ll see it in your feed shortly.
               </div>
             )}
 
