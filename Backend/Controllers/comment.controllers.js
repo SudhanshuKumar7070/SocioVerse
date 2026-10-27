@@ -110,17 +110,32 @@ const getAllCommentsofTweets = AsyncHandler(async (req, res) => {
   if (!userId) throw new ApiError(400, "unauthorised access");
 
   const { tweetId } = req.params;
-  if (!tweetId) throw new ApiError(400, "tweet id is required");
+  if (!tweetId || !tweetId.trim()) throw new ApiError(400, "tweet id is required");
   if (!mongoose.Types.ObjectId.isValid(tweetId))
     throw new ApiError(400, "invalid tweet id");
 
-  // check if tweet is present or not
+  const tweetObjectId = new mongoose.Types.ObjectId(tweetId);
+  const pageNo = Math.max(parseInt(req.query.page) || 1, 1);
+  const limitNo = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 50);
+  const skip = (pageNo - 1) * limitNo;
+
+  const totalComments = await Comment.countDocuments({ tweet: tweetObjectId });
+  const totalPages = Math.ceil(totalComments / limitNo);
+  const hasNextPage = pageNo < totalPages;
+
   const comments = await Comment.aggregate([
     {
       $match: {
-        tweet: new mongoose.Types.ObjectId(tweetId),
+        tweet: tweetObjectId,
       },
     },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    { $skip: skip },
+    { $limit: limitNo },
     {
       $lookup: {
         from: "users",
@@ -130,31 +145,37 @@ const getAllCommentsofTweets = AsyncHandler(async (req, res) => {
       },
     },
     {
-      $unwind: "$commentOwner",
+      $unwind: {
+        path: "$commentOwner",
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $project: {
         content: 1,
         createdAt: 1,
         _id: 1,
+        "commentOwner._id": 1,
         "commentOwner.fullName": 1,
         "commentOwner.profilePicture": 1,
         "commentOwner.userName": 1,
       },
     },
-
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
   ]);
 
-  if (!comments || comments.length === 0)
-    throw new ApiError(400, " no comments available");
-  return res
-    .status(200)
-    .json(new ApiResponse(200, comments, "comments fetched successfully"));
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        comments: comments || [],
+        currentPage: pageNo,
+        totalPages,
+        totalComments,
+        hasNextPage,
+      },
+      "comments fetched successfully"
+    )
+  );
 });
 
 export { createComment, deleteTheComment, editComment, getAllCommentsofTweets };

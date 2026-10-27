@@ -48,9 +48,10 @@ export const PushNotificationWorker = new Worker(
     console.log("Found token documents:", receivers.length, receivers);
 
     if (!receivers || receivers.length === 0) {
-      throw new Error(
-        `No FCM tokens found for receiver user: ${receiverIdStr} at job id: ${jobId}`,
+      console.log(
+        `No FCM tokens found for receiver user: ${receiverIdStr} at job id: ${jobId} - skipping push notification`,
       );
+      return;
     }
 
     const receiversList = receivers.map((t) => t.fcmToken);

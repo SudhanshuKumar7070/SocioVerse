@@ -4,14 +4,16 @@ import { ApiError } from "../Utils/ApiError.js";
 import { Notification } from "../Models/notification.model.js";
 import mongoose from "mongoose";
 
-// change the status from read false to true
+// Change status from read false to true
 const updateIsRead = AsyncHandler(async (req, res) => {
   const { notificationId } = req.params;
-  if (!notificationId.trim()) throw new ApiError(400, "missing notificatin id");
+  if (!notificationId?.trim()) throw new ApiError(400, "missing notification id");
   if (!mongoose.Types.ObjectId.isValid(notificationId))
-    throw new ApiError(500, "invalid mongoose id");
+    throw new ApiError(400, "invalid mongoose id");
+
   const isLoggedIn = req.user?._id;
-  if (!isLoggedIn) throw new ApiError(402, "authentication required");
+  if (!isLoggedIn) throw new ApiError(401, "authentication required");
+
   const notification = await Notification.findByIdAndUpdate(
     new mongoose.Types.ObjectId(notificationId),
     {
@@ -21,51 +23,65 @@ const updateIsRead = AsyncHandler(async (req, res) => {
     },
     {
       new: true,
-    },
+    }
   );
+
   if (!notification)
-    throw new ApiError(400, "unable to update isRead notification");
+    throw new ApiError(404, "unable to find or update notification");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, notification, "updated success fully"));
+    .json(new ApiResponse(200, notification, "updated successfully"));
 });
-// get all friend Request notificatin of the user
+
+// Get all notifications for current user
+const getAllUserNotifications = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "you need to login first");
+
+  const notifications = await Notification.find({ receiver: userId , isRead:false })
+    .populate("sender", "fullName userName profilePicture")
+    .sort({ createdAt: -1 })
+    .limit(60);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      notifications || [],
+      "all notifications fetched successfully"
+    )
+  );
+});
+
+// Get friend request notifications
 const getFriendRequestNotification = AsyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  if (!userId) throw new ApiError(402, "you need to login first");
-  const notifications = await Notification.aggregate([
-    {
-      $match: {
-        isRead: false,
-        receiver: userId,
-        service: { $in: ["friendRequest", "friendRequestAccept"] }, // for multiple stages of friend request notification
-      },
+  if (!userId) throw new ApiError(401, "you need to login first");
+
+  const notifications = await Notification.find({
+    receiver: userId,
+    service: {
+      $in: ["friendRequest", "friendRequestAccept", "friendRequestReject"],
     },
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
-  ]);
-  if (!notifications || notifications.length === 0)
-    throw new ApiError(
-      500,
-      "something went wrong in fetching notifications at the moment",
-    );
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        notifications,
-        "chat notification  fetched successfully",
-      ),
-    );
+  })
+    .populate("sender", "fullName userName profilePicture")
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      notifications || [],
+      "friend request notifications fetched successfully"
+    )
+  );
 });
-//  get all notification text messages -> get messages while oppenig the app
+
+// Get chat notifications
 const getChatNotification = AsyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  if (!userId) throw new ApiError(402, "you need to login first");
+  if (!userId) throw new ApiError(401, "you need to login first");
+
   const chatNotifications = await Notification.aggregate([
     {
       $match: {
@@ -85,6 +101,7 @@ const getChatNotification = AsyncHandler(async (req, res) => {
     {
       $project: {
         userName: { $arrayElemAt: ["$userDetails.userName", 0] },
+        fullName: { $arrayElemAt: ["$userDetails.fullName", 0] },
         profilePicture: { $arrayElemAt: ["$userDetails.profilePicture", 0] },
         content: 1,
         receiver: 1,
@@ -93,45 +110,48 @@ const getChatNotification = AsyncHandler(async (req, res) => {
         conversationId: 1,
       },
     },
-
     {
       $sort: {
         createdAt: -1,
       },
     },
   ]);
-  if (!chatNotifications || chatNotifications.length === 0)
-    return res
-      .status(204)
-      .json({ message: " you doesn't have any messages right now" });
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        chatNotifications,
-        "notitifications fetched successfully",
-      ),
-    );
-});
-const getTweetNotification = AsyncHandler(async (req, res) => {
-  const userId = req.user?._id;
-  if (!userId) throw new ApiError(402, "you need to login first");
-  // TODO: implement tweet notifications
-  const tweetNotifications = await Notification.aggregate([
-    {
-      $match: {
-        isRead: false,
-        receiver: userId,
-        service: "tweetNotification",
-      },
-    },
-  ]);
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(200, tweetNotifications, "tweet notifications fetched"),
-    );
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      chatNotifications || [],
+      "chat notifications fetched successfully"
+    )
+  );
 });
 
-export { updateIsRead, getFriendRequestNotification, getChatNotification };
+// Get tweet notifications
+const getTweetNotification = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "you need to login first");
+
+  const tweetNotifications = await Notification.find({
+    receiver: userId,
+    service: { $in: ["tweetNotification", "tweetLike", "tweetComment", "tweetRetweet"] },
+  })
+    .populate("sender", "fullName userName profilePicture")
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      tweetNotifications || [],
+      "tweet notifications fetched successfully"
+    )
+  );
+});
+
+export {
+  updateIsRead,
+  getAllUserNotifications,
+  getFriendRequestNotification,
+  getChatNotification,
+  getTweetNotification,
+};

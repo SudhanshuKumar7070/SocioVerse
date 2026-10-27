@@ -36,19 +36,38 @@ export const inAppNotificationWorker = new Worker(
         ].some((el) => !el)
       )
         throw new Error("all parameters are not available");
-      //    creating db entry
-
-      const notification = await Notification.create({
-        content: content,
+      // Check if notification already created for this source to prevent duplicate notifications
+      let notification = await Notification.findOne({
         sender: senderId,
         receiver: receiverId,
         service: service,
         sourceId: sourceId,
-        sourceModel: sourceModel,
       });
+
+      if (!notification) {
+        notification = await Notification.create({
+          content: content,
+          sender: senderId,
+          receiver: receiverId,
+          service: service,
+          sourceId: sourceId,
+          sourceModel: sourceModel,
+        });
+      }
+
       if (!notification)
         throw new Error("notification not created at the moment");
-      globalNameSpace.to(receiverChannel).emit(eventName, payload);
+
+      await notification.populate("sender", "fullName userName profilePicture");
+
+      if (globalNameSpace) {
+        globalNameSpace.to(receiverChannel.toString()).emit(eventName, {
+          notification,
+          friendRequest: payload,
+          sender: notification.sender,
+          content: notification.content,
+        });
+      }
     } catch (error) {
       console.error("error in sending notification", error);
       throw error;

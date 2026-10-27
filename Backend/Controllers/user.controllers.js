@@ -614,6 +614,98 @@ const setFCMToken = AsyncHandler(async (req, res) => {
     .json(new ApiResponse(200, result, "successfully registered"));
 });
 
+// update profile details (fullName, bio, location, gender, profilePicture, bannerImage, etc.)
+const updateProfileDetails = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "Unauthorized access");
+
+  const { fullName, bioText, country, city, gender, dateOfBirth, socialLinks, isPrivate } = req.body;
+
+  const updateFields = {
+    lastUpdated: Date.now(),
+  };
+
+  if (fullName !== undefined && fullName.trim()) {
+    updateFields.fullName = fullName.trim();
+  }
+
+  if (isPrivate !== undefined) {
+    updateFields.isPrivate = String(isPrivate) === "true";
+  }
+
+  // Handle uploaded files
+  if (req.files?.profilePicture?.[0]?.path) {
+    const uploadRes = await uploadProfileImage(req.files.profilePicture[0].path);
+    if (uploadRes?.url) {
+      updateFields.profilePicture = uploadRes.url;
+    }
+  }
+
+  if (req.files?.bannerImage?.[0]?.path) {
+    const uploadRes = await uploadProfileImage(req.files.bannerImage[0].path);
+    if (uploadRes?.url) {
+      updateFields["bio.bannerImage"] = uploadRes.url;
+    }
+  }
+
+  // Update bio fields if provided
+  if (bioText !== undefined) updateFields["bio.text"] = bioText;
+  if (gender !== undefined) updateFields["bio.gender"] = gender;
+  if (dateOfBirth !== undefined) updateFields["bio.dateOfBirth"] = dateOfBirth;
+  if (country !== undefined) updateFields["bio.location.country"] = country;
+  if (city !== undefined) updateFields["bio.location.city"] = city;
+
+  // Social links can come as parsed JSON or array
+  if (socialLinks !== undefined) {
+    try {
+      const parsedLinks = typeof socialLinks === "string" ? JSON.parse(socialLinks) : socialLinks;
+      if (Array.isArray(parsedLinks)) {
+        updateFields["bio.socialLinks"] = parsedLinks;
+      }
+    } catch {
+      // ignore parse error
+    }
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $set: updateFields },
+    { new: true }
+  ).select("-password -RefreshToken");
+
+  if (!updatedUser) throw new ApiError(500, "Failed to update profile");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
+});
+
+// change password for logged-in user
+const changeCurrentPassword = AsyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "Unauthorized access");
+
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    throw new ApiError(400, "Both current and new passwords are required");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
+
+  const isPasswordCorrect = await user.isCorrectPassword(currentPassword);
+  if (!isPasswordCorrect) {
+    throw new ApiError(400, "Current password is incorrect");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
+
 export {
   registerUser,
   loginUser,
@@ -632,4 +724,6 @@ export {
   getCurrentUserData,
   // fcm Token
   setFCMToken,
+  updateProfileDetails,
+  changeCurrentPassword,
 };

@@ -251,7 +251,7 @@ const getTweetByTweetId = AsyncHandler(async (req, res) => {
   const tweetId = req.params?.tweet_id;
 
   if (!user) throw new ApiError(402, "Authentication required!");
-  if (!tweetId.trim() || !mongoose.Types.ObjectId.isValid(tweetId)) {
+  if (!tweetId || !tweetId.trim() || !mongoose.Types.ObjectId.isValid(tweetId)) {
     throw new ApiError(400, "Invalid tweet ID");
   }
 
@@ -268,18 +268,52 @@ const getTweetByTweetId = AsyncHandler(async (req, res) => {
       },
     },
     {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweets",
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isLikedByUser: {
+          $in: [
+            user,
+            {
+              $map: {
+                input: "$likes",
+                as: "l",
+                in: "$l.owner",
+              },
+            },
+          ],
+        },
+        likeCount: {
+          $size: "$likes",
+        },
+      },
+    },
+    {
       $project: {
-        "owner_data.password": 0,
-        "owner_data.RefreshToken": 0,
-        "owner_data.bio": 0,
-        "owner_data.contacts": 0,
+        TextContent: 1,
+        imageUrl: 1,
+        videoContent: 1,
+        createdAt: 1,
+        isLikedByUser: 1,
+        likeCount: 1,
+        "owner_data._id": 1,
+        "owner_data.fullName": 1,
+        "owner_data.userName": 1,
+        "owner_data.profilePicture": 1,
+        "owner_data.createdAt": 1,
       },
     },
   ]);
 
-  console.log("Tweet data:", userTweet);
-
-  if (!userTweet.length) throw new ApiError(400, "Tweet not found for this ID");
+  if (!userTweet || !userTweet.length) {
+    throw new ApiError(404, "Tweet not found for this ID");
+  }
 
   return res
     .status(200)
@@ -377,32 +411,30 @@ const getAllTweets = AsyncHandler(async (req, res) => {
     )
   );
 });
-//  get all tweets of particular user or any user;
+// get all tweets of particular user or any user with pagination & likes
 const getIndividualsTweets = AsyncHandler(async (req, res) => {
-  const isLogin = req.user?._id;
-  if (!isLogin) throw new ApiError(400, "auauthorised access");
-  const { userId } = req.params;
-  if (!userId.trim()) throw new ApiError(404, "user id missing!");
-  if (!mongoose.Types.ObjectId.isValid(userId))
-    throw new ApiError(500, "invalid userId");
+  const loginId = req.user?._id;
+  if (!loginId) throw new ApiError(400, "unauthorised access");
 
-  const tweets = await User.aggregate([
+  const { userId } = req.params;
+  if (!userId || !userId.trim()) throw new ApiError(400, "user id missing!");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw new ApiError(400, "invalid userId");
+  }
+
+  const targetUserId = new mongoose.Types.ObjectId(userId);
+  const pageNo = Math.max(parseInt(req.query.page) || 1, 1);
+  const limitNo = Math.min(Math.max(parseInt(req.query.limit) || 10, 1), 50);
+  const skip = (pageNo - 1) * limitNo;
+
+  const totalTweets = await Tweet.countDocuments({ userId: targetUserId });
+  const totalPages = Math.ceil(totalTweets / limitNo);
+  const hasNextPage = pageNo < totalPages;
+
+  const tweets = await Tweet.aggregate([
     {
       $match: {
-        _id: new mongoose.Types.ObjectId(userId),
-      },
-    },
-    {
-      $lookup: {
-        from: "tweets",
-        localField: "_id",
-        foreignField: "userId",
-        as: "UserTweets",
-      },
-    },
-    {
-      $project: {
-        UserTweets: 1,
+        userId: targetUserId,
       },
     },
     {
@@ -410,12 +442,75 @@ const getIndividualsTweets = AsyncHandler(async (req, res) => {
         createdAt: -1,
       },
     },
+    { $skip: skip },
+    { $limit: limitNo },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "UserData",
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        localField: "_id",
+        foreignField: "tweets",
+        as: "likes",
+      },
+    },
+    {
+      $addFields: {
+        isLikedByUser: {
+          $in: [
+            loginId,
+            {
+              $map: {
+                input: "$likes",
+                as: "l",
+                in: "$l.owner",
+              },
+            },
+          ],
+        },
+        likeCount: {
+          $size: "$likes",
+        },
+      },
+    },
+    {
+      $project: {
+        TextContent: 1,
+        imageUrl: 1,
+        videoContent: 1,
+        createdAt: 1,
+        isLikedByUser: 1,
+        likeCount: 1,
+        UserData: {
+          _id: 1,
+          fullName: 1,
+          userName: 1,
+          profilePicture: 1,
+          createdAt: 1,
+        },
+      },
+    },
   ]);
-  if (!tweets || tweets.length === 0)
-    throw new ApiError(404, " something went wrong in finding tweets");
-  return res
-    .status(200)
-    .json(new ApiResponse(200, tweets, "tweets fetched successfully"));
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        tweets: tweets || [],
+        currentPage: pageNo,
+        totalPages,
+        totalTweets,
+        hasNextPage,
+      },
+      "tweets fetched successfully"
+    )
+  );
 });
 
 export {

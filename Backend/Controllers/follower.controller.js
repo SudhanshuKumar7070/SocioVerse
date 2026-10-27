@@ -6,123 +6,170 @@ import { Follower } from "../Models/followers.model.js";
 import { User } from "../Models/user.model.js";
 import { getGlobalNamespace } from "../server/globalNameSpace.js";
 import { Notification } from "../Models/notification.model.js";
+
+// Follow a user
 const followUser = AsyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const globalNameSpace =getGlobalNamespace();
-  if (!userId) throw new ApiError(400, "unauthorised access");
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "unauthorised access");
+
   const { followingId } = req.params;
   if (!followingId) throw new ApiError(400, "following id is required");
   if (!mongoose.Types.ObjectId.isValid(followingId))
     throw new ApiError(400, "invalid following id");
-  // checking if user is already a follwer or not
+
+  // Cannot follow self
+  if (userId.toString() === followingId.toString()) {
+    throw new ApiError(400, "You cannot follow yourself");
+  }
+
+  // Check if target user exists
+  const targetUser = await User.findById(followingId).select("fullName userName isPrivate");
+  if (!targetUser) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Check if user is already following
   const isFollowing = await Follower.findOne({
     Follower: userId,
-    Following:  new mongoose.Types.ObjectId(followingId) ,
+    Following: new mongoose.Types.ObjectId(followingId),
   });
-  if (isFollowing)
-    throw new ApiError(500, "you are already following the user");
+
+  if (isFollowing) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, isFollowing, "already following the user"));
+  }
+
   const newFollower = await Follower.create({
     Follower: userId,
     Following: followingId,
   });
-  if (!newFollower)
+
+  if (!newFollower) {
     throw new ApiError(500, "unable to follow the user at the moment");
-    const newFollowerNotification = await Notification.create({
-      content:"Someone follwed You ..",
-      sender:req.user?._id,
-      receiver:followingId,
-       service:"followRequsetSent"
-    })
-    if(!newFollowerNotification) throw new ApiError(500, "unable to create notification at moment")
-      globalNameSpace.to(followingId).emit("FollowRequest",{newFollowerNotification})
+  }
+
+  // Sender details for notification
+  const senderUser = await User.findById(userId).select(
+    "fullName userName profilePicture"
+  );
+
+  // Create notification
+  const newFollowerNotification = await Notification.create({
+    content: `${senderUser?.fullName || senderUser?.userName || "Someone"} started following you`,
+    sender: userId,
+    receiver: followingId,
+    service: "follow",
+    sourceId: userId,
+    sourceModel: "User",
+  });
+
+  // Emit real-time notification via Socket.IO
+  const globalNameSpace = getGlobalNamespace();
+  if (globalNameSpace) {
+    globalNameSpace.to(followingId.toString()).emit("FollowRequest", {
+      newFollowerNotification,
+      sender: senderUser,
+      message: `${senderUser?.fullName || senderUser?.userName || "Someone"} started following you`,
+    });
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, newFollower, "user followed successfully"));
 });
 
+// Unfollow a user
 const unfollowUser = AsyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  if (!userId) throw new ApiError(400, "unauthorised access");
-  const { followingId } = req.params;
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "unauthorised access");
+
+  const followingId = req.params.followingId || req.params.userId;
   if (!followingId) throw new ApiError(400, "following id is required");
   if (!mongoose.Types.ObjectId.isValid(followingId))
     throw new ApiError(400, "invalid following id");
-  // checking if user is already a follwer or not
-  const isFollowing = await Follower.findOne({
-    Followers: userId,
-    Following: followingId,
+
+  const unfollowedUser = await Follower.findOneAndDelete({
+    Follower: userId,
+    Following: new mongoose.Types.ObjectId(followingId),
   });
-  if (!isFollowing) throw new ApiError(500, "you are not following the user");
-  const unfollowedUser = await Follower.findByIdAndDelete(isFollowing._id);
-  if (!unfollowedUser)
-    throw new ApiError(500, "unable to unfollow the user at the moment");
+
+  if (!unfollowedUser) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "you are not following the user"));
+  }
+
   return res
     .status(200)
     .json(new ApiResponse(200, unfollowedUser, "user unfollowed successfully"));
 });
 
-//  get all followers  of any public user
-
+// Get all followers of any user
 const getAllFollowers = AsyncHandler(async (req, res) => {
-  const loginId = req.user._id;
-  if (!loginId) throw new ApiError(400, "unauthorised access");
-  const { userId } = req.params;
-  if (!userId.trim()) throw new ApiError(400, "user id is required");
+  const loginId = req.user?._id;
+  if (!loginId) throw new ApiError(401, "unauthorised access");
+
+  const userId = req.params.userId ? req.params.userId.trim() : "";
+  if (!userId) throw new ApiError(400, "user id is required");
   if (!mongoose.Types.ObjectId.isValid(userId))
     throw new ApiError(400, "invalid user id");
-  // check if user is available or not and if available then check if user is private or not
+
+  // Check if user exists
   const user = await User.findById(userId);
-  if (!user) throw new ApiError(400, "user not found");
-  if (user.isPrivate) {
-    throw new ApiError(400, "user is private you can't see the followers");
-  }
+  if (!user) throw new ApiError(404, "user not found");
+
   const followers = await Follower.aggregate([
     {
       $match: {
-        Following: mongoose.Types.ObjectId(userId),
+        Following: new mongoose.Types.ObjectId(userId),
       },
     },
     {
       $lookup: {
         from: "users",
-        localField: "Followers",
+        localField: "Follower",
         foreignField: "_id",
-        as: "FollowerList",
+        as: "followerUser",
+      },
+    },
+    { $unwind: "$followerUser" },
+    {
+      $project: {
+        _id: "$followerUser._id",
+        fullName: "$followerUser.fullName",
+        userName: "$followerUser.userName",
+        profilePicture: "$followerUser.profilePicture",
+        createdAt: "$createdAt",
       },
     },
     {
-      $project: {
-        FollowersList: 1,
-      },
+      $sort: { createdAt: -1 },
     },
   ]);
-  if (!followers || followers.length === 0)
-    throw new ApiError(400, "no followers available");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, followers, "followers fetched successfully"));
+    .json(new ApiResponse(200, followers || [], "followers fetched successfully"));
 });
-//get all followings of any public user
+
+// Get all followings of any user
 const getAllFollowings = AsyncHandler(async (req, res) => {
-  const loginId = req.user._id;
-  if (!loginId) throw new ApiError(400, "unauthorised access");
-  const { userId } = req.params;
-  if (!userId.trim()) throw new ApiError(400, "user id is required");
+  const loginId = req.user?._id;
+  if (!loginId) throw new ApiError(401, "unauthorised access");
+
+  const userId = req.params.userId ? req.params.userId.trim() : "";
+  if (!userId) throw new ApiError(400, "user id is required");
   if (!mongoose.Types.ObjectId.isValid(userId))
     throw new ApiError(400, "invalid user id");
-  // check if user is available or not and if available then check if user is private or not
+
   const user = await User.findById(userId);
-  if (!user) throw new ApiError(400, "user not found");
-  if (user.isPrivate) {
-    throw new ApiError(
-      400,
-      "user is private you can't see the followings of the user"
-    );
-  }
+  if (!user) throw new ApiError(404, "user not found");
+
   const followings = await Follower.aggregate([
     {
       $match: {
-        Followers: mongoose.Types.ObjectId(userId),
+        Follower: new mongoose.Types.ObjectId(userId),
       },
     },
     {
@@ -130,61 +177,79 @@ const getAllFollowings = AsyncHandler(async (req, res) => {
         from: "users",
         localField: "Following",
         foreignField: "_id",
-        as: "FollowingList",
+        as: "followingUser",
+      },
+    },
+    { $unwind: "$followingUser" },
+    {
+      $project: {
+        _id: "$followingUser._id",
+        fullName: "$followingUser.fullName",
+        userName: "$followingUser.userName",
+        profilePicture: "$followingUser.profilePicture",
+        createdAt: "$createdAt",
       },
     },
     {
-      $project: {
-        FollowingList: 1,
-      },
+      $sort: { createdAt: -1 },
     },
   ]);
-  if (!followings || followings.length === 0)
-    throw new ApiError(400, "no followings available");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, followings, "followings fetched successfully"));
+    .json(
+      new ApiResponse(200, followings || [], "followings fetched successfully")
+    );
 });
-// get all followers of logged in user
+
+// Get all followers of logged-in user
 const getALlFollowersOfLoggedInUser = AsyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  if (!userId) throw new ApiError(400, "unauthorised access");
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "unauthorised access");
+
   const followers = await Follower.aggregate([
     {
       $match: {
-        Following: userId,
+        Following: new mongoose.Types.ObjectId(userId),
       },
     },
     {
       $lookup: {
         from: "users",
-        localField: "Followers",
+        localField: "Follower",
         foreignField: "_id",
-        as: "FollowerList",
+        as: "followerUser",
+      },
+    },
+    { $unwind: "$followerUser" },
+    {
+      $project: {
+        _id: "$followerUser._id",
+        fullName: "$followerUser.fullName",
+        userName: "$followerUser.userName",
+        profilePicture: "$followerUser.profilePicture",
+        createdAt: "$createdAt",
       },
     },
     {
-      $project: {
-        FollowerList: 1,
-      },
+      $sort: { createdAt: -1 },
     },
   ]);
-  if (!followers || followers.length === 0)
-    throw new ApiError(400, "no followers available");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, followers, "followers fetched successfully"));
+    .json(new ApiResponse(200, followers || [], "followers fetched successfully"));
 });
 
-//    get all folllowings of logged in user
-
+// Get all followings of logged-in user
 const getAllFollowingsOfLoggedInUser = AsyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  if (!userId) throw new ApiError(400, "unauthorised access");
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "unauthorised access");
+
   const followings = await Follower.aggregate([
     {
       $match: {
-        Followers: userId,
+        Follower: new mongoose.Types.ObjectId(userId),
       },
     },
     {
@@ -192,38 +257,54 @@ const getAllFollowingsOfLoggedInUser = AsyncHandler(async (req, res) => {
         from: "users",
         localField: "Following",
         foreignField: "_id",
-        as: "FollowingList",
+        as: "followingUser",
+      },
+    },
+    { $unwind: "$followingUser" },
+    {
+      $project: {
+        _id: "$followingUser._id",
+        fullName: "$followingUser.fullName",
+        userName: "$followingUser.userName",
+        profilePicture: "$followingUser.profilePicture",
+        createdAt: "$createdAt",
       },
     },
     {
-      $project: {
-        FollowingList: 1,
-      },
+      $sort: { createdAt: -1 },
     },
   ]);
-  if (!followings || followings.length === 0)
-    throw new ApiError(400, "no followings available");
+
   return res
     .status(200)
-    .json(new ApiResponse(200, followings, "followings fetched successfully"));
+    .json(
+      new ApiResponse(200, followings || [], "followings fetched successfully")
+    );
 });
 
-//check if the logged in user is following the user or not --> for togelling of follow button
-
+// Check if the logged-in user is following another user
 const isFolllowingUser = AsyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  if (!userId) throw new ApiError(400, "unauthorised access");
+  const userId = req.user?._id;
+  if (!userId) throw new ApiError(401, "unauthorised access");
+
   const { followingId } = req.params;
   if (!followingId) throw new ApiError(400, "following id is required");
+  if (!mongoose.Types.ObjectId.isValid(followingId)) {
+    throw new ApiError(400, "invalid following id");
+  }
+
   const isFollowing = await Follower.findOne({
-    Followers: userId,
-    Following: followingId,
+    Follower: userId,
+    Following: new mongoose.Types.ObjectId(followingId),
   });
-  if (!isFollowing)
-    return res
-      .status(201)
-      .json(new ApiResponse(200, false, "not following the user"));
-  return res.status(200).json(new ApiResponse(200, true, "following the user"));
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { isFollowing: Boolean(isFollowing) },
+      isFollowing ? "following the user" : "not following the user"
+    )
+  );
 });
 
 export {

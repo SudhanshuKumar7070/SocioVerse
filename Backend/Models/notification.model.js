@@ -18,9 +18,20 @@ import mongoose from 'mongoose'
     ,
     service:{
         type:String,
-        enum:["chatMessage","friendRequest","friendRequestAccept","friendRequestReject","tweetNotification","tweetLike","tweetRetweet","tweetComment","tweetShare","tweetReply"]
-        // it should containn what kind of notification it is..
-        // chat , tweet , app etc event notification like friendRequestSent or friendRequestAccepted notifications
+        enum:[
+          "chatMessage",
+          "friendRequest",
+          "friendRequestAccept",
+          "friendRequestReject",
+          "tweetNotification",
+          "tweetLike",
+          "tweetRetweet",
+          "tweetComment",
+          "tweetShare",
+          "tweetReply",
+          "follow"
+        ]
+        // it should contain what kind of notification it is..
     },
     sourceId:{
         type:mongoose.Schema.Types.ObjectId,
@@ -28,7 +39,7 @@ import mongoose from 'mongoose'
     },
      sourceModel: { 
         type: String, 
-        enum: ["FriendRequest", "Conversation", "Post", "Comment"] 
+        enum: ["FriendRequest", "Conversation", "Post", "Comment", "User"] 
     }
     
  },{timestamps:true})
