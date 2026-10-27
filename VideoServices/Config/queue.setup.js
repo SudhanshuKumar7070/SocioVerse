@@ -62,7 +62,7 @@ const execAsync = (cmd) =>
 export const videoTranscoder = new Worker(
   "videoQueue",
   async (job) => {
-    const { localVideoPath, lessonId, title } = job.data;
+    const { localVideoPath, lessonId, title, description, userId } = job.data;
     const hlsLocalDir = `Public/temp/output/${lessonId}`;
     const remoteFolder = `videos/${lessonId}`;
 
@@ -121,6 +121,8 @@ export const videoTranscoder = new Worker(
 
     const newVideo = await ReelVideo.create({
       title,
+      description: description || "",
+      userId: userId || undefined,
       originalFileName: localVideoPath,
       hlsPath: videoUrl,
     });
